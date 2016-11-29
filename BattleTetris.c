@@ -15,6 +15,7 @@
 #define MOVE_LEFT 1
 #define MOVE_RIGHT 2
 #define MOVE_DOWN 3
+#define ROTATE 4
 
 typedef struct Point {
 	uint16_t x;
@@ -27,7 +28,8 @@ typedef struct Piece {
 	Point point3;
 	Point point4;
 	Point origin;
-	struct Piece* next_rotation;
+	uint16_t piece_number;
+	uint16_t rotation_number;
 	uint16_t color;
 } Piece;
 
@@ -59,7 +61,398 @@ void board_init(void) {
 }
 
 void pieces_init(void) {
-	// TODO: initialize pieces
+	//t piece, rotation 0
+	static_pieces[0][0].point1.x = 0;
+	static_pieces[0][0].point1.y = 1;
+	static_pieces[0][0].point2.x = 1;
+	static_pieces[0][0].point2.y = 1;
+	static_pieces[0][0].point3.x = 1;
+	static_pieces[0][0].point3.y = 2;
+	static_pieces[0][0].point4.x = 2;
+	static_pieces[0][0].point4.y = 1;
+	static_pieces[0][0].origin.x = 0;
+	static_pieces[0][0].origin.y = 0;
+	static_pieces[0][0].piece_number = 0;
+	static_pieces[0][0].rotation_number = 0;
+	static_pieces[0][0].color = 0x780F; //purple
+	//t piece, rotation 1
+	static_pieces[0][1].point1.x = 1;
+	static_pieces[0][1].point1.y = 0;
+	static_pieces[0][1].point2.x = 1;
+	static_pieces[0][1].point2.y = 1;
+	static_pieces[0][1].point3.x = 1;
+	static_pieces[0][1].point3.y = 2;
+	static_pieces[0][1].point4.x = 2;
+	static_pieces[0][1].point4.y = 1;
+	static_pieces[0][1].origin.x = 0;
+	static_pieces[0][1].origin.y = 0;
+	static_pieces[0][1].piece_number = 0;
+	static_pieces[0][1].rotation_number = 1;
+	static_pieces[0][1].color = 0x780F; //purple
+	//t piece, rotation 2
+	static_pieces[0][2].point1.x = 0;
+	static_pieces[0][2].point1.y = 1;
+	static_pieces[0][2].point2.x = 1;
+	static_pieces[0][2].point2.y = 0;
+	static_pieces[0][2].point3.x = 1;
+	static_pieces[0][2].point3.y = 1;
+	static_pieces[0][2].point4.x = 2;
+	static_pieces[0][2].point4.y = 1;
+	static_pieces[0][2].origin.x = 0;
+	static_pieces[0][2].origin.y = 0;
+	static_pieces[0][2].piece_number = 0;
+	static_pieces[0][2].rotation_number = 2;
+	static_pieces[0][2].color = 0x780F; //purple
+	//t piece, rotation 3
+	static_pieces[0][3].point1.x = 0;
+	static_pieces[0][3].point1.y = 1;
+	static_pieces[0][3].point2.x = 1;
+	static_pieces[0][3].point2.y = 0;
+	static_pieces[0][3].point3.x = 1;
+	static_pieces[0][3].point3.y = 1;
+	static_pieces[0][3].point4.x = 1;
+	static_pieces[0][3].point4.y = 2;
+	static_pieces[0][3].origin.x = 0;
+	static_pieces[0][3].origin.y = 0;
+	static_pieces[0][3].piece_number = 0;
+	static_pieces[0][3].rotation_number = 3;
+	static_pieces[0][3].color = 0x780F; //purple
+	//i piece, rotation 0
+	static_pieces[1][0].point1.x = 0;
+	static_pieces[1][0].point1.y = 2;
+	static_pieces[1][0].point2.x = 1;
+	static_pieces[1][0].point2.y = 2;
+	static_pieces[1][0].point3.x = 2;
+	static_pieces[1][0].point3.y = 2;
+	static_pieces[1][0].point4.x = 3;
+	static_pieces[1][0].point4.y = 2;
+	static_pieces[1][0].origin.x = 0;
+	static_pieces[1][0].origin.y = 0;
+	static_pieces[1][0].piece_number = 1;
+	static_pieces[1][0].rotation_number = 0;
+	static_pieces[1][0].color = 0x07FF; //cyan
+	//i piece, rotation 1
+	static_pieces[1][1].point1.x = 2;
+	static_pieces[1][1].point1.y = 0;
+	static_pieces[1][1].point2.x = 2;
+	static_pieces[1][1].point2.y = 1;
+	static_pieces[1][1].point3.x = 2;
+	static_pieces[1][1].point3.y = 2;
+	static_pieces[1][1].point4.x = 2;
+	static_pieces[1][1].point4.y = 3;
+	static_pieces[1][1].origin.x = 0;
+	static_pieces[1][1].origin.y = 0;
+	static_pieces[1][1].piece_number = 1;
+	static_pieces[1][1].rotation_number = 1;
+	static_pieces[1][1].color = 0x07FF; //cyan
+	//i piece, rotation 2
+	static_pieces[1][2].point1.x = 0;
+	static_pieces[1][2].point1.y = 1;
+	static_pieces[1][2].point2.x = 1;
+	static_pieces[1][2].point2.y = 1;
+	static_pieces[1][2].point3.x = 2;
+	static_pieces[1][2].point3.y = 1;
+	static_pieces[1][2].point4.x = 3;
+	static_pieces[1][2].point4.y = 1;
+	static_pieces[1][2].origin.x = 0;
+	static_pieces[1][2].origin.y = 0;
+	static_pieces[1][2].piece_number = 1;
+	static_pieces[1][2].rotation_number = 2;
+	static_pieces[1][2].color = 0x07FF; //cyan
+	//i piece, rotation 3
+	static_pieces[1][3].point1.x = 1;
+	static_pieces[1][3].point1.y = 0;
+	static_pieces[1][3].point2.x = 1;
+	static_pieces[1][3].point2.y = 1;
+	static_pieces[1][3].point3.x = 1;
+	static_pieces[1][3].point3.y = 2;
+	static_pieces[1][3].point4.x = 1;
+	static_pieces[1][3].point4.y = 3;
+	static_pieces[1][3].origin.x = 0;
+	static_pieces[1][3].origin.y = 0;
+	static_pieces[1][3].piece_number = 1;
+	static_pieces[1][3].rotation_number = 3;
+	static_pieces[1][3].color = 0x07FF; //cyan
+	//o piece, rotation 0
+	static_pieces[2][0].point1.x = 1;
+	static_pieces[2][0].point1.y = 1;
+	static_pieces[2][0].point2.x = 1;
+	static_pieces[2][0].point2.y = 2;
+	static_pieces[2][0].point3.x = 2;
+	static_pieces[2][0].point3.y = 1;
+	static_pieces[2][0].point4.x = 2;
+	static_pieces[2][0].point4.y = 2;
+	static_pieces[2][0].origin.x = 0;
+	static_pieces[2][0].origin.y = 0;
+	static_pieces[2][0].piece_number = 2;
+	static_pieces[2][0].rotation_number = 0;
+	static_pieces[2][0].color = 0xFFE0; //yellow
+	//o piece, rotation 1
+	static_pieces[2][1].point1.x = 1;
+	static_pieces[2][1].point1.y = 1;
+	static_pieces[2][1].point2.x = 1;
+	static_pieces[2][1].point2.y = 2;
+	static_pieces[2][1].point3.x = 2;
+	static_pieces[2][1].point3.y = 1;
+	static_pieces[2][1].point4.x = 2;
+	static_pieces[2][1].point4.y = 2;
+	static_pieces[2][1].origin.x = 0;
+	static_pieces[2][1].origin.y = 0;
+	static_pieces[2][1].piece_number = 2;
+	static_pieces[2][1].rotation_number = 1;
+	static_pieces[2][1].color = 0xFFE0; //yellow
+	//o piece, rotation 2
+	static_pieces[2][2].point1.x = 1;
+	static_pieces[2][2].point1.y = 1;
+	static_pieces[2][2].point2.x = 1;
+	static_pieces[2][2].point2.y = 2;
+	static_pieces[2][2].point3.x = 2;
+	static_pieces[2][2].point3.y = 1;
+	static_pieces[2][2].point4.x = 2;
+	static_pieces[2][2].point4.y = 2;
+	static_pieces[2][2].origin.x = 0;
+	static_pieces[2][2].origin.y = 0;
+	static_pieces[2][2].piece_number = 2;
+	static_pieces[2][2].rotation_number = 2;
+	static_pieces[2][2].color = 0xFFE0; //yellow
+	//o piece, rotation 3
+	static_pieces[2][3].point1.x = 1;
+	static_pieces[2][3].point1.y = 1;
+	static_pieces[2][3].point2.x = 1;
+	static_pieces[2][3].point2.y = 2;
+	static_pieces[2][3].point3.x = 2;
+	static_pieces[2][3].point3.y = 1;
+	static_pieces[2][3].point4.x = 2;
+	static_pieces[2][3].point4.y = 2;
+	static_pieces[2][3].origin.x = 0;
+	static_pieces[2][3].origin.y = 0;
+	static_pieces[2][3].piece_number = 2;
+	static_pieces[2][3].rotation_number = 3;
+	static_pieces[2][3].color = 0xFFE0; //yellow
+	//s piece, rotation 0
+	static_pieces[3][0].point1.x = 0;
+	static_pieces[3][0].point1.y = 1;
+	static_pieces[3][0].point2.x = 1;
+	static_pieces[3][0].point2.y = 1;
+	static_pieces[3][0].point3.x = 1;
+	static_pieces[3][0].point3.y = 2;
+	static_pieces[3][0].point4.x = 2;
+	static_pieces[3][0].point4.y = 2;
+	static_pieces[3][0].origin.x = 0;
+	static_pieces[3][0].origin.y = 0;
+	static_pieces[3][0].piece_number = 3;
+	static_pieces[3][0].rotation_number = 0;
+	static_pieces[3][0].color = 0x07E0; //green
+	//s piece, rotation 1
+	static_pieces[3][1].point1.x = 1;
+	static_pieces[3][1].point1.y = 1;
+	static_pieces[3][1].point2.x = 1;
+	static_pieces[3][1].point2.y = 2;
+	static_pieces[3][1].point3.x = 2;
+	static_pieces[3][1].point3.y = 0;
+	static_pieces[3][1].point4.x = 2;
+	static_pieces[3][1].point4.y = 1;
+	static_pieces[3][1].origin.x = 0;
+	static_pieces[3][1].origin.y = 0;
+	static_pieces[3][1].piece_number = 3;
+	static_pieces[3][1].rotation_number = 1;
+	static_pieces[3][1].color = 0x07E0; //green
+	//s piece, rotation 2
+	static_pieces[3][2].point1.x = 0;
+	static_pieces[3][2].point1.y = 0;
+	static_pieces[3][2].point2.x = 1;
+	static_pieces[3][2].point2.y = 0;
+	static_pieces[3][2].point3.x = 1;
+	static_pieces[3][2].point3.y = 1;
+	static_pieces[3][2].point4.x = 2;
+	static_pieces[3][2].point4.y = 1;
+	static_pieces[3][2].origin.x = 0;
+	static_pieces[3][2].origin.y = 0;
+	static_pieces[3][2].piece_number = 3;
+	static_pieces[3][2].rotation_number = 2;
+	static_pieces[3][2].color = 0x07E0; //green
+	//s piece, rotation 3
+	static_pieces[3][3].point1.x = 0;
+	static_pieces[3][3].point1.y = 1;
+	static_pieces[3][3].point2.x = 0;
+	static_pieces[3][3].point2.y = 2;
+	static_pieces[3][3].point3.x = 1;
+	static_pieces[3][3].point3.y = 0;
+	static_pieces[3][3].point4.x = 1;
+	static_pieces[3][3].point4.y = 1;
+	static_pieces[3][3].origin.x = 0;
+	static_pieces[3][3].origin.y = 0;
+	static_pieces[3][3].piece_number = 3;
+	static_pieces[3][3].rotation_number = 3;
+	static_pieces[3][3].color = 0x07E0; //green
+	//z piece, rotation 0
+	static_pieces[4][0].point1.x = 0;
+	static_pieces[4][0].point1.y = 2;
+	static_pieces[4][0].point2.x = 1;
+	static_pieces[4][0].point2.y = 1;
+	static_pieces[4][0].point3.x = 1;
+	static_pieces[4][0].point3.y = 2;
+	static_pieces[4][0].point4.x = 2;
+	static_pieces[4][0].point4.y = 1;
+	static_pieces[4][0].origin.x = 0;
+	static_pieces[4][0].origin.y = 0;
+	static_pieces[4][0].piece_number = 4;
+	static_pieces[4][0].rotation_number = 0;
+	static_pieces[4][0].color = 0xF800; //red
+	//z piece, rotation 1
+	static_pieces[4][1].point1.x = 1;
+	static_pieces[4][1].point1.y = 0;
+	static_pieces[4][1].point2.x = 1;
+	static_pieces[4][1].point2.y = 1;
+	static_pieces[4][1].point3.x = 2;
+	static_pieces[4][1].point3.y = 1;
+	static_pieces[4][1].point4.x = 2;
+	static_pieces[4][1].point4.y = 2;
+	static_pieces[4][1].origin.x = 0;
+	static_pieces[4][1].origin.y = 0;
+	static_pieces[4][1].piece_number = 4;
+	static_pieces[4][1].rotation_number = 1;
+	static_pieces[4][1].color = 0xF800; //red
+	//z piece, rotation 2
+	static_pieces[4][2].point1.x = 0;
+	static_pieces[4][2].point1.y = 1;
+	static_pieces[4][2].point2.x = 1;
+	static_pieces[4][2].point2.y = 0;
+	static_pieces[4][2].point3.x = 1;
+	static_pieces[4][2].point3.y = 1;
+	static_pieces[4][2].point4.x = 2;
+	static_pieces[4][2].point4.y = 0;
+	static_pieces[4][2].origin.x = 0;
+	static_pieces[4][2].origin.y = 0;
+	static_pieces[4][2].piece_number = 4;
+	static_pieces[4][2].rotation_number = 2;
+	static_pieces[4][2].color = 0xF800; //red
+	//z piece, rotation 3
+	static_pieces[4][3].point1.x = 0;
+	static_pieces[4][3].point1.y = 0;
+	static_pieces[4][3].point2.x = 0;
+	static_pieces[4][3].point2.y = 1;
+	static_pieces[4][3].point3.x = 1;
+	static_pieces[4][3].point3.y = 1;
+	static_pieces[4][3].point4.x = 1;
+	static_pieces[4][3].point4.y = 2;
+	static_pieces[4][3].origin.x = 0;
+	static_pieces[4][3].origin.y = 0;
+	static_pieces[4][3].piece_number = 4;
+	static_pieces[4][3].rotation_number = 3;
+	static_pieces[4][3].color = 0xF800; //red
+	//j piece, rotation 0
+	static_pieces[5][0].point1.x = 0;
+	static_pieces[5][0].point1.y = 1;
+	static_pieces[5][0].point2.x = 0;
+	static_pieces[5][0].point2.y = 2;
+	static_pieces[5][0].point3.x = 1;
+	static_pieces[5][0].point3.y = 1;
+	static_pieces[5][0].point4.x = 2;
+	static_pieces[5][0].point4.y = 1;
+	static_pieces[5][0].origin.x = 0;
+	static_pieces[5][0].origin.y = 0;
+	static_pieces[5][0].piece_number = 5;
+	static_pieces[5][0].rotation_number = 0;
+	static_pieces[5][0].color = 0x001F; //blue
+	//j piece, rotation 1
+	static_pieces[5][1].point1.x = 1;
+	static_pieces[5][1].point1.y = 0;
+	static_pieces[5][1].point2.x = 1;
+	static_pieces[5][1].point2.y = 1;
+	static_pieces[5][1].point3.x = 1;
+	static_pieces[5][1].point3.y = 2;
+	static_pieces[5][1].point4.x = 2;
+	static_pieces[5][1].point4.y = 2;
+	static_pieces[5][1].origin.x = 0;
+	static_pieces[5][1].origin.y = 0;
+	static_pieces[5][1].piece_number = 5;
+	static_pieces[5][1].rotation_number = 1;
+	static_pieces[5][1].color = 0x001F; //blue
+	//j piece, rotation 2
+	static_pieces[5][2].point1.x = 0;
+	static_pieces[5][2].point1.y = 1;
+	static_pieces[5][2].point2.x = 1;
+	static_pieces[5][2].point2.y = 1;
+	static_pieces[5][2].point3.x = 2;
+	static_pieces[5][2].point3.y = 0;
+	static_pieces[5][2].point4.x = 2;
+	static_pieces[5][2].point4.y = 1;
+	static_pieces[5][2].origin.x = 0;
+	static_pieces[5][2].origin.y = 0;
+	static_pieces[5][2].piece_number = 5;
+	static_pieces[5][2].rotation_number = 2;
+	static_pieces[5][2].color = 0x001F; //blue
+	//j piece, rotation 3
+	static_pieces[5][3].point1.x = 0;
+	static_pieces[5][3].point1.y = 0;
+	static_pieces[5][3].point2.x = 1;
+	static_pieces[5][3].point2.y = 0;
+	static_pieces[5][3].point3.x = 1;
+	static_pieces[5][3].point3.y = 1;
+	static_pieces[5][3].point4.x = 1;
+	static_pieces[5][3].point4.y = 2;
+	static_pieces[5][3].origin.x = 0;
+	static_pieces[5][3].origin.y = 0;
+	static_pieces[5][3].piece_number = 5;
+	static_pieces[5][3].rotation_number = 3;
+	static_pieces[5][3].color = 0x001F; //blue
+	//l piece, rotation 0
+	static_pieces[6][0].point1.x = 0;
+	static_pieces[6][0].point1.y = 1;
+	static_pieces[6][0].point2.x = 1;
+	static_pieces[6][0].point2.y = 1;
+	static_pieces[6][0].point3.x = 2;
+	static_pieces[6][0].point3.y = 1;
+	static_pieces[6][0].point4.x = 2;
+	static_pieces[6][0].point4.y = 2;
+	static_pieces[6][0].origin.x = 0;
+	static_pieces[6][0].origin.y = 0;
+	static_pieces[6][0].piece_number = 6;
+	static_pieces[6][0].rotation_number = 0;
+	static_pieces[6][0].color = 0xFD20; //orange
+	//l piece, rotation 1
+	static_pieces[6][1].point1.x = 1;
+	static_pieces[6][1].point1.y = 0;
+	static_pieces[6][1].point2.x = 1;
+	static_pieces[6][1].point2.y = 1;
+	static_pieces[6][1].point3.x = 1;
+	static_pieces[6][1].point3.y = 2;
+	static_pieces[6][1].point4.x = 2;
+	static_pieces[6][1].point4.y = 0;
+	static_pieces[6][1].origin.x = 0;
+	static_pieces[6][1].origin.y = 0;
+	static_pieces[6][1].piece_number = 6;
+	static_pieces[6][1].rotation_number = 1;
+	static_pieces[6][1].color = 0xFD20; //orange
+	//l piece, rotation 2
+	static_pieces[6][2].point1.x = 0;
+	static_pieces[6][2].point1.y = 0;
+	static_pieces[6][2].point2.x = 0;
+	static_pieces[6][2].point2.y = 1;
+	static_pieces[6][2].point3.x = 1;
+	static_pieces[6][2].point3.y = 1;
+	static_pieces[6][2].point4.x = 2;
+	static_pieces[6][2].point4.y = 1;
+	static_pieces[6][2].origin.x = 0;
+	static_pieces[6][2].origin.y = 0;
+	static_pieces[6][2].piece_number = 6;
+	static_pieces[6][2].rotation_number = 2;
+	static_pieces[6][2].color = 0xFD20; //orange
+	//l piece, rotation 3
+	static_pieces[6][3].point1.x = 0;
+	static_pieces[6][3].point1.y = 2;
+	static_pieces[6][3].point2.x = 1;
+	static_pieces[6][3].point2.y = 0;
+	static_pieces[6][3].point3.x = 1;
+	static_pieces[6][3].point3.y = 1;
+	static_pieces[6][3].point4.x = 1;
+	static_pieces[6][3].point4.y = 2;
+	static_pieces[6][3].origin.x = 0;
+	static_pieces[6][3].origin.y = 0;
+	static_pieces[6][3].piece_number = 6;
+	static_pieces[6][3].rotation_number = 3;
+	static_pieces[6][3].color = 0xFD20; //orange
 }
 
 Piece* gen_piece(void) {
@@ -78,7 +471,8 @@ void copy_piece(Piece* dest, Piece* src, Point origin) {
 	dest->point4.y = src->point4.y + origin.y;
 	dest->origin.x = origin.x;
 	dest->origin.y = origin.y;
-	dest->next_rotation = src->next_rotation;
+	dest->piece_number = src->piece_number;
+	dest->rotation_number = src->rotation_number;
 	dest->color = src->color;
 }
 
