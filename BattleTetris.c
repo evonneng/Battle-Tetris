@@ -165,13 +165,92 @@ void game_two(void) {
 	}
 }
 
+void left(void) {
+	int x1 = current_piece.point1.x-1;
+	int x2 = current_piece.point2.x-1;
+	int x3 = current_piece.point3.x-1;
+	int x4 = current_piece.point4.x-1;
+	int y1 = current_piece.point1.y;
+	int y2 = current_piece.point2.y;
+	int y3 = current_piece.point3.y;
+	int y4 = current_piece.point4.y;
+	// if out of bounds
+	if (x1 < 0 || x2 < 0 || x3 < 0 || x4 < 0) return;
+	// if a piece is blocking it from moving
+	if (board[y1][x1] == 1 ||
+		board[y2][x2] == 1 ||
+		board[y3][x3] == 1 ||
+		board[y4][x4] == 1) {
+		return;
+	}
+	current_piece.point1.x = x1;
+	current_piece.point2.x = x2;
+	current_piece.point3.x = x3;
+	current_piece.point4.x = x4;
+	return;
+}
+
+void right(void) {
+	int x1 = current_piece.point1.x+1;
+	int x2 = current_piece.point2.x+1;
+	int x3 = current_piece.point3.x+1;
+	int x4 = current_piece.point4.x+1;
+	int y1 = current_piece.point1.y;
+	int y2 = current_piece.point2.y;
+	int y3 = current_piece.point3.y;
+	int y4 = current_piece.point4.y;
+	// if out of bounds
+	if (x1 >=10 || x2 >= 10 || x3 >= 10 || x4 >= 10) return;
+	// if a piece is blocking it from moving
+	if (board[y1][x1] == 1 ||
+		board[y2][x2] == 1 ||
+		board[y3][x3] == 1 ||
+		board[y4][x4] == 1) {
+		return;
+	}
+	current_piece.point1.x = x1;
+	current_piece.point2.x = x2;
+	current_piece.point3.x = x3;
+	current_piece.point4.x = x4;
+}
+
+void down(void) {
+	int x1 = current_piece.point1.x;
+	int x2 = current_piece.point2.x;
+	int x3 = current_piece.point3.x;
+	int x4 = current_piece.point4.x;
+	int y1 = current_piece.point1.y+1;
+	int y2 = current_piece.point2.y+1;
+	int y3 = current_piece.point3.y+1;
+	int y4 = current_piece.point4.y+1;
+	// if out of bounds
+	if (y1 >= 20 || y2 >= 20 || y3 >= 20 || y4 >= 20) return;
+	// if a piece is blocking it from moving
+	if (board[y1][x1] == 1 || 
+		board[y2][x2] == 1 ||
+		board[y3][x3] == 1 ||
+		board[y4][x4] == 1) {
+		return;
+	}
+	current_piece.point1.y = y1;
+	current_piece.point2.y = y2;
+	current_piece.point3.y = y3;
+	current_piece.point4.y = y4;
+}
+
+void place(void) {
+	int x1 = current_piece.point1.x; 
+	int x2 = current_piece.point2.x;
+
+}
+
 int main(void) {
 	TExaS_Init();  // set system clock to 80 MHz
-  Random_Init(1);
+ 	Random_Init(1);
 
-  ST7735_InitR(INITR_REDTAB);
-  ADC_Init();    // initialize to sample ADC1
-  UART_Init();       // initialize UART
+ 	ST7735_InitR(INITR_REDTAB);
+ 	ADC_Init();    // initialize to sample ADC1
+ 	UART_Init();       // initialize UART
 	SysTick_Init();
 	board_init();
 	pieces_init();
