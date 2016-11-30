@@ -553,6 +553,7 @@ void game_one(void) {
 		draw_piece(&current_piece, 0);
 		//TODO: move piece
 		draw_piece(&current_piece, current_piece.color);
+		play_state = DO_NOTHING;
 	}
 	//TODO: display score screen
 }
