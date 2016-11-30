@@ -666,6 +666,39 @@ void right(void) {
 	draw_piece(&current_piece, current_piece.color);
 }
 
+// naive way of clearing the board one row
+void clear_row(int row) {
+	// shift everthing from the row above down
+	for (int y = row; y < 19; y++) {
+		for (int x = 0; x < 10; x++) {
+			board[y][x] = board[y+1][x];
+		}
+	}
+	// set the top row as a cleared row
+	for (int x = 0; x < 10; x++) {
+		board[19][x] = 0xFFFF;
+	}
+}
+
+// naive way of checking if there is a row to be cleared
+void update_score() {
+	int clear = 1; // init to true
+	for (int y = 0; y < 20; y++) {
+		for (int x = 0; x < 10; x++) {
+			if (board[y][x] == 0xFFFF) {
+				// if there is a blank in the row
+				clear = 0;
+				break;
+			}
+		}
+		if (clear) {
+			clear_row(y);
+			clear = 1; //reset boolean
+			score += 10; //increment score
+		}
+	}
+}
+
 void place(void) {
 	//TODO: check for full row, clear stuff if there are rows to clear, increment and display/update score
 	// mark the piece on the board with the color
@@ -695,6 +728,7 @@ void place(void) {
 		mode = FINISHED;
 		return;
 	}
+	update_score();
 }
 
 void down(void) {
