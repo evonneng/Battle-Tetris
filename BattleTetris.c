@@ -477,17 +477,18 @@ void copy_piece(Piece* dest, Piece* src, Point origin) {
 	dest->color = src->color;
 }
 
-void display_start_menu(void) {
-	//TODO: display start screen
-}
-
 // 0 = do nothing, 1 = left, 2 = right, rest is down
 uint8_t get_buttons(void) {
 	//TODO: get the input from
 	return 0;
 }
 
+void draw_start_menu(void) {
+	//TODO: display start screen
+}
+
 void draw_game_start(void) {
+	//TODO: fix appearances
 	ST7735_FillRect(0, 0, 80, 160, 0);
 	ST7735_DrawFastVLine(80, 0, 160, 0xFFFF);
 	ST7735_FillRect(81, 0, 47, 160, 0x7BE0);
@@ -505,6 +506,7 @@ void draw_piece(Piece* p, uint16_t color) {
 }
 
 void draw_score() {
+	//TODO: probably need to fix location of score drawing
 	ST7735_SetCursor(85, 100);
 	LCD_OutDec(score);
 }
@@ -715,14 +717,14 @@ int main(void) {
  	Random_Init(1);
 
  	ST7735_InitR(INITR_REDTAB);
- 	ADC_Init();    // initialize to sample ADC1
+ 	ADC_Init();    // initialize to sample ADC1 (slider)
  	UART_Init();       // initialize UART
 	SysTick_Init();
 	board_init();
 	pieces_init();
-	//TODO: initialize buttons
+	//TODO: initialize buttons, sound, heartbeat
 	while(1) {
-		display_start_menu();
+		draw_start_menu();
 		while(0) { //TODO: waiting for menu selection
 		}
 		score = 0;
