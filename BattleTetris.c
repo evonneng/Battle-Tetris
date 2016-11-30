@@ -43,6 +43,7 @@ typedef struct Piece {
 Piece static_pieces[7][4];
 
 Piece current_piece;
+Piece next_piece;
 
 uint16_t board [20][10];
 uint8_t mode = 0;
@@ -536,7 +537,9 @@ void game_one(void) {
 	origin.x = 4;
 	origin.y = 16;
 	copy_piece(&current_piece, gen_piece(), origin);
+	copy_piece(&next_piece, gen_piece(), origin);
 	draw_piece(&current_piece, current_piece.color);
+	//TODO: display the next piece
 	while(mode == ONE_PLAYER) {
 		int state = can_move();
 		if(state == 1) {
@@ -571,17 +574,18 @@ void left(void) {
 	// if out of bounds
 	if (x1 < 0 || x2 < 0 || x3 < 0 || x4 < 0) return;
 	// if a piece is blocking it from moving
-	if (board[y1][x1] == 1 ||
-		board[y2][x2] == 1 ||
-		board[y3][x3] == 1 ||
-		board[y4][x4] == 1) {
+	if (board[y1][x1] != 0 ||
+			board[y2][x2] != 0 ||
+			board[y3][x3] != 0 ||
+			board[y4][x4] != 0) {
 		return;
 	}
 	current_piece.point1.x = x1;
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
 	current_piece.point4.x = x4;
-	return;
+	// check if the new piece should be placed
+	place();
 }
 
 void right(void) {
@@ -596,16 +600,18 @@ void right(void) {
 	// if out of bounds
 	if (x1 >=10 || x2 >= 10 || x3 >= 10 || x4 >= 10) return;
 	// if a piece is blocking it from moving
-	if (board[y1][x1] == 1 ||
-		board[y2][x2] == 1 ||
-		board[y3][x3] == 1 ||
-		board[y4][x4] == 1) {
+	if (board[y1][x1] != 0 ||
+			board[y2][x2] != 0 ||
+			board[y3][x3] != 0 ||
+			board[y4][x4] != 0) {
 		return;
 	}
 	current_piece.point1.x = x1;
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
 	current_piece.point4.x = x4;
+	// check if the new piece should be placed
+	place();
 }
 
 void down(void) {
@@ -620,22 +626,38 @@ void down(void) {
 	// if out of bounds
 	if (y1 >= 20 || y2 >= 20 || y3 >= 20 || y4 >= 20) return;
 	// if a piece is blocking it from moving
-	if (board[y1][x1] == 1 || 
-		board[y2][x2] == 1 ||
-		board[y3][x3] == 1 ||
-		board[y4][x4] == 1) {
+	if (board[y1][x1] != 0 || 
+			board[y2][x2] != 0 ||
+			board[y3][x3] != 0 ||
+			board[y4][x4] != 0) {
 		return;
 	}
 	current_piece.point1.y = y1;
 	current_piece.point2.y = y2;
 	current_piece.point3.y = y3;
 	current_piece.point4.y = y4;
+	// check if the new piece should be placed
+	place();
 }
 
 void place(void) {
-	int x1 = current_piece.point1.x; 
-	int x2 = current_piece.point2.x;
-
+	// if something is below the current piece
+	if (board[current_piece.point1.y+1][current_piece.point1.x] != 0 ||
+			board[current_piece.point2.y+1][current_piece.point2.x] != 0 ||
+			board[current_piece.point3.y+1][current_piece.point3.x] != 0 ||
+			board[current_piece.point4.y+1][current_piece.point4.x] != 0) {
+		// mark the piece on the board with the color
+		board[current_piece.point1.y][current_piece.point1.x] = current_piece.color;
+		board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
+		board[current_piece.point3.y][current_piece.point3.x] = current_piece.color;
+		board[current_piece.point4.y][current_piece.point4.x] = current_piece.color;
+		//generate a new piece and copy it over
+		Point origin;
+		origin.x = 4;
+		origin.y = 16;
+		copy_piece(&current_piece, &next_piece, origin);
+		copy_piece(&next_piece, gen_piece(), origin);
+	}
 }
 
 int main(void) {
