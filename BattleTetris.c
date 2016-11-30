@@ -457,7 +457,7 @@ void pieces_init(void) {
 }
 
 Piece* gen_piece(void) {
-	uint32_t index = Random()%4;
+	uint32_t index = Random()%7;
 	return (Piece*)static_pieces[index][0];
 }
 
@@ -493,12 +493,6 @@ void draw_piece(Piece* p, uint16_t color) {
 
 void draw_score() {
 	//TODO: display the updated score
-}
-
-//-1 if game over, 0 if can't move(left/right collisions), 1 if can move, 2 if moving down and will place
-int can_move(void) {
-	//TODO: check if can move
-	return 0;
 }
 
 void SysTick_Init(void){
@@ -541,17 +535,11 @@ void game_one(void) {
 	draw_piece(&current_piece, current_piece.color);
 	//TODO: display the next piece
 	while(mode == ONE_PLAYER) {
-		int state = can_move();
-		if(state == 1) {
-			draw_piece(&current_piece, 0);
-			//TODO: move piece
-			draw_piece(&current_piece, current_piece.color);
-		} else if(state == 2) {
-			//TODO: check for clear row, increment score if so
-			//TODO: generate new piece, generate next piece
-		} else if(state == -1) {
-			mode = FINISHED;
-		}
+		draw_piece(&current_piece, 0);
+		//TODO: move piece
+		draw_piece(&current_piece, current_piece.color);
+		//TODO: check for clear row, increment score if so
+		//TODO: generate new piece, generate next piece
 	}
 	//TODO: display score screen
 }
@@ -560,6 +548,40 @@ void game_two(void) {
 	while(mode == TWO_PLAYER) {
 		
 	}
+}
+
+void rotate(void) {
+	uint16_t next_rot = (current_piece.rotation_number+1)%4;
+	Piece *tmp = (Piece *)static_pieces[current_piece.piece_number][next_rot];
+	// calculate location of the next rotated pieces
+	int x1 = current_piece.origin.x + tmp->point1.x;
+	int x2 = current_piece.origin.x + tmp->point2.x;
+	int x3 = current_piece.origin.x + tmp->point3.x;
+	int x4 = current_piece.origin.x + tmp->point4.x;
+	int y1 = current_piece.origin.y + tmp->point1.y;
+	int y2 = current_piece.origin.y + tmp->point2.y;
+	int y3 = current_piece.origin.y + tmp->point3.y;
+	int y4 = current_piece.origin.y + tmp->point4.y;
+	// check if the rotated piece is out of bounds
+	if (x1 < 0 || x1 >= 10 || y1 < 0 || y1 >= 20
+			|| x2 < 0 || x2 >= 10 || y2 < 0 || y2 >= 20
+			|| x3 < 0 || x3 >= 10 || y3 < 0 || y3 >= 20
+			|| x4 < 0 || x4 >= 10 || y4 < 0 || y4 >= 20) {
+		return;
+	}
+	// check if something is in the way of the rotation
+	if (board[y1][x1] != 0 || board[y2][x2] != 0 
+			|| board[y3][x3] != 0 || board[y4][x4] != 0) {
+		return;
+	}
+	current_piece.point1.x = x1;
+	current_piece.point2.x = x2;
+	current_piece.point3.x = x3;		
+	current_piece.point4.x = x4;
+	current_piece.point1.y = y1;
+	current_piece.point2.y = y2;
+	current_piece.point3.y = y3;		
+	current_piece.point4.y = y4;
 }
 
 void left(void) {
@@ -584,8 +606,7 @@ void left(void) {
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
 	current_piece.point4.x = x4;
-	// check if the new piece should be placed
-	place();
+	current_piece.origin.x --;
 }
 
 void right(void) {
@@ -610,8 +631,7 @@ void right(void) {
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
 	current_piece.point4.x = x4;
-	// check if the new piece should be placed
-	place();
+	current_piece.origin.x ++;
 }
 
 void down(void) {
@@ -636,6 +656,7 @@ void down(void) {
 	current_piece.point2.y = y2;
 	current_piece.point3.y = y3;
 	current_piece.point4.y = y4;
+	current_piece.origin.y ++;
 	// check if the new piece should be placed
 	place();
 }
@@ -651,7 +672,15 @@ void place(void) {
 		board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
 		board[current_piece.point3.y][current_piece.point3.x] = current_piece.color;
 		board[current_piece.point4.y][current_piece.point4.x] = current_piece.color;
-		//generate a new piece and copy it over
+		// check if the placed piece is above the cutoff for the game
+		if (current_piece.point1.y >= 20 ||
+				current_piece.point2.y >= 20 ||
+				current_piece.point3.y >= 20 ||
+				current_piece.point4.y >= 20) {
+			mode = FINISHED;
+			return;
+		}
+		// generate a new piece and copy it over
 		Point origin;
 		origin.x = 4;
 		origin.y = 16;
