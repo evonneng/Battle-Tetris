@@ -1,6 +1,6 @@
 ; LCD.s
-; Student names: change this to your names or look very silly
-; Last modification date: change this to the last modification date or look very silly
+; Student names: Calvin Ly, Evonne Ng
+; Last modification date: 10/26/16
 
 ; Runs on LM4F120/TM4C123
 ; Use SSI0 to send an 8-bit code to the ST7735 160x128 pixel LCD.
@@ -19,7 +19,9 @@
 ; VCC (pin 2) connected to +3.3 V
 ; Gnd (pin 1) connected to ground
 
-GPIO_PORTA_DATA_R       EQU   0x400043FC
+DC                      EQU   0x40004100
+DC_COMMAND              EQU   0
+DC_DATA                 EQU   0x40
 SSI0_DR_R               EQU   0x40008008
 SSI0_SR_R               EQU   0x4000800C
 SSI_SR_RNE              EQU   0x00000004  ; SSI Receive FIFO Not Empty
@@ -62,9 +64,25 @@ writecommand
 ;4) Write the command to SSI0_DR_R
 ;5) Read SSI0_SR_R and check bit 4, 
 ;6) If bit 4 is high, loop back to step 5 (wait for BUSY bit to be low)
-
-    
-    
+    LDR R1, =SSI0_SR_R
+writecommand_step1
+    LDR R2, [R1]
+    LSR R2, R2, #4
+    AND R2, R2, #1
+    CMP R2, #1			;check if bit 4 is high
+    BEQ writecommand_step1 	
+    LDR R2, =DC
+	LDR R3, =DC_COMMAND
+    STR R3, [R2] 		;clear D/C = PA6
+	LDR R2, =SSI0_DR_R
+	STRB R0, [R2] 		;write the command out to SSIO_DR_R
+	LDR R2, =SSI0_SR_R
+writecommand_step5
+	LDR R3, [R2]
+    LSR R3, R3, #4
+	AND R3, R3, #1
+	CMP R3, #1
+	BEQ writecommand_step5
     BX  LR                          ;   return
 
 ; This is a helper function that sends an 8-bit data to the LCD.
@@ -76,9 +94,18 @@ writedata
 ;2) If bit 1 is low loop back to step 1 (wait for TNF bit to be high)
 ;3) Set D/C=PA6 to one
 ;4) Write the 8-bit data to SSI0_DR_R
-
-    
-    
+	LDR R1, =SSI0_SR_R
+writedata_step1
+	LDR R2, [R1]		;read SSIO_SR_R
+	LSR R2, R2, #1
+	AND R2, R2, #1
+	CMP R2, #0		;check if bit 1 is low
+	BEQ writedata_step1
+	LDR R2, =DC
+	LDR R3, =DC_DATA	;write 8 bit data out
+	STR R3, [R2]
+    LDR R2, =SSI0_DR_R
+	STRB R0, [R2]
     BX  LR                          ;   return
 
 

@@ -486,12 +486,25 @@ uint8_t get_input(void) {
 	return 0;
 }
 
+void draw_game_start(void) {
+	ST7735_FillRect(0, 0, 80, 160, 0);
+	ST7735_DrawFastVLine(80, 0, 160, 0xFFFF);
+	ST7735_SetCursor(85, 10);
+	ST7735_OutString("Next Piece");
+	ST7735_SetCursor(85, 80);
+	ST7735_OutString("Score");
+}
+
 void draw_piece(Piece* p, uint16_t color) {
-	//TODO: draw piece
+	ST7735_FillRect(p->point1.x * 80, p->point1.y * 160, 8, 8, color);
+	ST7735_FillRect(p->point2.x * 80, p->point2.y * 160, 8, 8, color);
+	ST7735_FillRect(p->point3.x * 80, p->point3.y * 160, 8, 8, color);
+	ST7735_FillRect(p->point4.x * 80, p->point4.y * 160, 8, 8, color);
 }
 
 void draw_score() {
-	//TODO: display the updated score
+	ST7735_SetCursor(85, 100);
+	LCD_OutDec(score);
 }
 
 //-1 if game over, 0 if can't move(left/right collisions), 1 if can move, 2 if moving down and will place
@@ -532,11 +545,13 @@ void SysTick_Handler(void) {
 }
 
 void game_one(void) {
+	draw_game_start();
 	Point origin;
-	origin.x = 4;
-	origin.y = 16;
+	origin.x = 3;
+	origin.y = 3;
 	copy_piece(&current_piece, gen_piece(), origin);
 	draw_piece(&current_piece, current_piece.color);
+	play_state = DO_NOTHING;
 	while(mode == ONE_PLAYER) {
 		int state = can_move();
 		if(state == 1) {
