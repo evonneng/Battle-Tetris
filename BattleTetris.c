@@ -457,8 +457,8 @@ void pieces_init(void) {
 }
 
 Piece* gen_piece(void) {
-	//TODO: generate random piece
-	return 0;
+	uint32_t index = Random()%4;
+	return (Piece*)static_pieces[index][0];
 }
 
 void copy_piece(Piece* dest, Piece* src, Point origin) {
