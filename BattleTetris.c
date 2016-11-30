@@ -672,18 +672,21 @@ void clear_row(int row) {
 	for (int y = row; y > 0; y--) {
 		for (int x = 0; x < 10; x++) {
 			board[y][x] = board[y-1][x];
+			ST7735_FillRect(x * 8, y * 8, 8, 8, board[y][x]);
 		}
 	}
 	// set the top row as a cleared row
 	for (int x = 0; x < 10; x++) {
 		board[0][x] = 0xFFFF;
+		ST7735_FillRect(x * 8, 0, 8, 8, 0xFFFF);
 	}
 }
 
 // naive way of checking if there is a row to be cleared
 void update_score() {
-	int clear = 1; // init to true
+	int clear;
 	for (int y = 0; y < 20; y++) {
+		clear = 1; //init to true
 		for (int x = 0; x < 10; x++) {
 			if (board[y][x] == 0xFFFF) {
 				// if there is a blank in the row
@@ -693,10 +696,10 @@ void update_score() {
 		}
 		if (clear) {
 			clear_row(y);
-			clear = 1; //reset boolean
 			score += 10; //increment score
 		}
 	}
+	draw_score();
 }
 
 void place(void) {
@@ -706,6 +709,7 @@ void place(void) {
 	board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
 	board[current_piece.point3.y][current_piece.point3.x] = current_piece.color;
 	board[current_piece.point4.y][current_piece.point4.x] = current_piece.color;
+	update_score();
 	// check if the placed piece is above the cutoff for the game
 	if (current_piece.point1.y == 0 ||
 			current_piece.point2.y == 0 ||
@@ -728,7 +732,6 @@ void place(void) {
 		mode = FINISHED;
 		return;
 	}
-	update_score();
 }
 
 void down(void) {
