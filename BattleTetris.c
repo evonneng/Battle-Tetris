@@ -669,14 +669,14 @@ void right(void) {
 // naive way of clearing the board one row
 void clear_row(int row) {
 	// shift everthing from the row above down
-	for (int y = row; y < 19; y++) {
+	for (int y = row; y > 0; y--) {
 		for (int x = 0; x < 10; x++) {
-			board[y][x] = board[y+1][x];
+			board[y][x] = board[y-1][x];
 		}
 	}
 	// set the top row as a cleared row
 	for (int x = 0; x < 10; x++) {
-		board[19][x] = 0xFFFF;
+		board[0][x] = 0xFFFF;
 	}
 }
 
