@@ -43,6 +43,7 @@ typedef struct Piece {
 Piece static_pieces[7][4];
 
 Piece current_piece;
+Piece next_piece;
 
 uint16_t board [20][10];
 uint8_t mode = 0;
@@ -456,8 +457,8 @@ void pieces_init(void) {
 }
 
 Piece* gen_piece(void) {
-	//TODO: generate random piece
-	return 0;
+	uint32_t index = Random()%7;
+	return &static_pieces[index][0];
 }
 
 void copy_piece(Piece* dest, Piece* src, Point origin) {
@@ -507,12 +508,6 @@ void draw_score() {
 	LCD_OutDec(score);
 }
 
-//-1 if game over, 0 if can't move(left/right collisions), 1 if can move, 2 if moving down and will place
-int can_move(void) {
-	//TODO: check if can move
-	return 0;
-}
-
 void SysTick_Init(void){
   NVIC_ST_CTRL_R = 0;                   // disable SysTick during setup
   NVIC_ST_RELOAD_R = 2000000-1;  // maximum reload value
@@ -550,20 +545,14 @@ void game_one(void) {
 	origin.x = 3;
 	origin.y = 3;
 	copy_piece(&current_piece, gen_piece(), origin);
+	copy_piece(&next_piece, gen_piece(), origin);
 	draw_piece(&current_piece, current_piece.color);
 	play_state = DO_NOTHING;
+	//TODO: display the next piece
 	while(mode == ONE_PLAYER) {
-		int state = can_move();
-		if(state == 1) {
-			draw_piece(&current_piece, 0);
-			//TODO: move piece
-			draw_piece(&current_piece, current_piece.color);
-		} else if(state == 2) {
-			//TODO: check for clear row, increment score if so
-			//TODO: generate new piece, generate next piece
-		} else if(state == -1) {
-			mode = FINISHED;
-		}
+		draw_piece(&current_piece, 0);
+		//TODO: move piece
+		draw_piece(&current_piece, current_piece.color);
 	}
 	//TODO: display score screen
 }
@@ -572,6 +561,33 @@ void game_two(void) {
 	while(mode == TWO_PLAYER) {
 		
 	}
+}
+
+void rotate(void) {
+	uint16_t next_rot = (current_piece.rotation_number+1)%4;
+	Piece *tmp = &static_pieces[current_piece.piece_number][next_rot];
+	// calculate location of the next rotated pieces
+	int x1 = current_piece.origin.x + tmp->point1.x;
+	int x2 = current_piece.origin.x + tmp->point2.x;
+	int x3 = current_piece.origin.x + tmp->point3.x;
+	int x4 = current_piece.origin.x + tmp->point4.x;
+	int y1 = current_piece.origin.y + tmp->point1.y;
+	int y2 = current_piece.origin.y + tmp->point2.y;
+	int y3 = current_piece.origin.y + tmp->point3.y;
+	int y4 = current_piece.origin.y + tmp->point4.y;
+	// check if the rotated piece is out of bounds
+	if (x1 < 0 || x1 >= 10 || y1 < 0 || y1 >= 20
+			|| x2 < 0 || x2 >= 10 || y2 < 0 || y2 >= 20
+			|| x3 < 0 || x3 >= 10 || y3 < 0 || y3 >= 20
+			|| x4 < 0 || x4 >= 10 || y4 < 0 || y4 >= 20) {
+		return;
+	}
+	// check if something is in the way of the rotation
+	if (board[y1][x1] != 0 || board[y2][x2] != 0 
+			|| board[y3][x3] != 0 || board[y4][x4] != 0) {
+		return;
+	}
+	copy_piece(&current_piece, tmp, current_piece.origin);
 }
 
 void left(void) {
@@ -586,17 +602,17 @@ void left(void) {
 	// if out of bounds
 	if (x1 < 0 || x2 < 0 || x3 < 0 || x4 < 0) return;
 	// if a piece is blocking it from moving
-	if (board[y1][x1] == 1 ||
-		board[y2][x2] == 1 ||
-		board[y3][x3] == 1 ||
-		board[y4][x4] == 1) {
+	if (board[y1][x1] != 0 ||
+			board[y2][x2] != 0 ||
+			board[y3][x3] != 0 ||
+			board[y4][x4] != 0) {
 		return;
 	}
 	current_piece.point1.x = x1;
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
 	current_piece.point4.x = x4;
-	return;
+	current_piece.origin.x --;
 }
 
 void right(void) {
@@ -611,16 +627,48 @@ void right(void) {
 	// if out of bounds
 	if (x1 >=10 || x2 >= 10 || x3 >= 10 || x4 >= 10) return;
 	// if a piece is blocking it from moving
-	if (board[y1][x1] == 1 ||
-		board[y2][x2] == 1 ||
-		board[y3][x3] == 1 ||
-		board[y4][x4] == 1) {
+	if (board[y1][x1] != 0 ||
+			board[y2][x2] != 0 ||
+			board[y3][x3] != 0 ||
+			board[y4][x4] != 0) {
 		return;
 	}
 	current_piece.point1.x = x1;
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
 	current_piece.point4.x = x4;
+	current_piece.origin.x ++;
+}
+
+void place(void) {
+	//TODO: check for full row, clear stuff if there are rows to clear
+	// mark the piece on the board with the color
+	board[current_piece.point1.y][current_piece.point1.x] = current_piece.color;
+	board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
+	board[current_piece.point3.y][current_piece.point3.x] = current_piece.color;
+	board[current_piece.point4.y][current_piece.point4.x] = current_piece.color;
+	// check if the placed piece is above the cutoff for the game
+	if (current_piece.point1.y == 0 ||
+			current_piece.point2.y == 0 ||
+			current_piece.point3.y == 0 ||
+			current_piece.point4.y == 0) {
+		mode = FINISHED;
+		return;
+	}
+	// generate a new piece and copy it over
+	Point origin;
+	origin.x = 3;
+	origin.y = 3;
+	copy_piece(&current_piece, &next_piece, origin);
+	copy_piece(&next_piece, gen_piece(), origin);
+	//TODO: render next piece
+	if (board[current_piece.point1.y][current_piece.point1.x] != 0 ||
+		 board[current_piece.point2.y][current_piece.point2.x] != 0 ||
+		 board[current_piece.point3.y][current_piece.point3.x] != 0 ||
+		 board[current_piece.point4.y][current_piece.point4.x] != 0) {
+		mode = FINISHED;
+		return;
+	}
 }
 
 void down(void) {
@@ -633,24 +681,23 @@ void down(void) {
 	int y3 = current_piece.point3.y+1;
 	int y4 = current_piece.point4.y+1;
 	// if out of bounds
-	if (y1 >= 20 || y2 >= 20 || y3 >= 20 || y4 >= 20) return;
+	if (y1 >= 20 || y2 >= 20 || y3 >= 20 || y4 >= 20) {
+		place();
+		return;
+	}
 	// if a piece is blocking it from moving
-	if (board[y1][x1] == 1 || 
-		board[y2][x2] == 1 ||
-		board[y3][x3] == 1 ||
-		board[y4][x4] == 1) {
+	if (board[y1][x1] != 0 || 
+			board[y2][x2] != 0 ||
+			board[y3][x3] != 0 ||
+			board[y4][x4] != 0) {
+		place();
 		return;
 	}
 	current_piece.point1.y = y1;
 	current_piece.point2.y = y2;
 	current_piece.point3.y = y3;
 	current_piece.point4.y = y4;
-}
-
-void place(void) {
-	int x1 = current_piece.point1.x; 
-	int x2 = current_piece.point2.x;
-
+	current_piece.origin.y ++;
 }
 
 int main(void) {
