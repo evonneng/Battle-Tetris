@@ -17,6 +17,8 @@
 #define MOVE_DOWN 3
 #define ROTATE 4
 
+#define RIGHT_SIDE_COLOR 0x7BE0 //olive
+
 typedef struct Point {
 	uint16_t x;
 	uint16_t y;
@@ -53,10 +55,19 @@ uint32_t score;
 void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
 
+void buttons_init(void) { //PE 0, 1, 3, 4
+	SYSCTL_RCGC2_R |= 0x10;  	// 1) enable clock to E
+	uint16_t delay;
+	delay = SYSCTL_RCGC2_R;  	// 2) no need to unlock
+	GPIO_PORTE_DIR_R &= ~0x1B; // Port E is all input switches
+	GPIO_PORTE_AFSEL_R &= ~0x1B;
+	GPIO_PORTE_DEN_R |= 0x1B;
+}
+
 void board_init(void) {
 	for(int i = 0; i < 20; i++) {
 		for(int j = 0; j < 10; j++) {
-			board[i][j] = 0;
+			board[i][j] = 0xFFFF;
 		}
 	}
 }
@@ -68,7 +79,7 @@ void pieces_init(void) {
 	static_pieces[0][0].point2.x = 1;
 	static_pieces[0][0].point2.y = 1;
 	static_pieces[0][0].point3.x = 1;
-	static_pieces[0][0].point3.y = 2;
+	static_pieces[0][0].point3.y = 0;
 	static_pieces[0][0].point4.x = 2;
 	static_pieces[0][0].point4.y = 1;
 	static_pieces[0][0].origin.x = 0;
@@ -78,11 +89,11 @@ void pieces_init(void) {
 	static_pieces[0][0].color = 0x780F; //purple
 	//t piece, rotation 1
 	static_pieces[0][1].point1.x = 1;
-	static_pieces[0][1].point1.y = 0;
+	static_pieces[0][1].point1.y = 2;
 	static_pieces[0][1].point2.x = 1;
 	static_pieces[0][1].point2.y = 1;
 	static_pieces[0][1].point3.x = 1;
-	static_pieces[0][1].point3.y = 2;
+	static_pieces[0][1].point3.y = 0;
 	static_pieces[0][1].point4.x = 2;
 	static_pieces[0][1].point4.y = 1;
 	static_pieces[0][1].origin.x = 0;
@@ -94,7 +105,7 @@ void pieces_init(void) {
 	static_pieces[0][2].point1.x = 0;
 	static_pieces[0][2].point1.y = 1;
 	static_pieces[0][2].point2.x = 1;
-	static_pieces[0][2].point2.y = 0;
+	static_pieces[0][2].point2.y = 2;
 	static_pieces[0][2].point3.x = 1;
 	static_pieces[0][2].point3.y = 1;
 	static_pieces[0][2].point4.x = 2;
@@ -108,11 +119,11 @@ void pieces_init(void) {
 	static_pieces[0][3].point1.x = 0;
 	static_pieces[0][3].point1.y = 1;
 	static_pieces[0][3].point2.x = 1;
-	static_pieces[0][3].point2.y = 0;
+	static_pieces[0][3].point2.y = 2;
 	static_pieces[0][3].point3.x = 1;
 	static_pieces[0][3].point3.y = 1;
 	static_pieces[0][3].point4.x = 1;
-	static_pieces[0][3].point4.y = 2;
+	static_pieces[0][3].point4.y = 0;
 	static_pieces[0][3].origin.x = 0;
 	static_pieces[0][3].origin.y = 0;
 	static_pieces[0][3].piece_number = 0;
@@ -120,13 +131,13 @@ void pieces_init(void) {
 	static_pieces[0][3].color = 0x780F; //purple
 	//i piece, rotation 0
 	static_pieces[1][0].point1.x = 0;
-	static_pieces[1][0].point1.y = 2;
+	static_pieces[1][0].point1.y = 1;
 	static_pieces[1][0].point2.x = 1;
-	static_pieces[1][0].point2.y = 2;
+	static_pieces[1][0].point2.y = 1;
 	static_pieces[1][0].point3.x = 2;
-	static_pieces[1][0].point3.y = 2;
+	static_pieces[1][0].point3.y = 1;
 	static_pieces[1][0].point4.x = 3;
-	static_pieces[1][0].point4.y = 2;
+	static_pieces[1][0].point4.y = 1;
 	static_pieces[1][0].origin.x = 0;
 	static_pieces[1][0].origin.y = 0;
 	static_pieces[1][0].piece_number = 1;
@@ -134,13 +145,13 @@ void pieces_init(void) {
 	static_pieces[1][0].color = 0x07FF; //cyan
 	//i piece, rotation 1
 	static_pieces[1][1].point1.x = 2;
-	static_pieces[1][1].point1.y = 0;
+	static_pieces[1][1].point1.y = 3;
 	static_pieces[1][1].point2.x = 2;
-	static_pieces[1][1].point2.y = 1;
+	static_pieces[1][1].point2.y = 2;
 	static_pieces[1][1].point3.x = 2;
-	static_pieces[1][1].point3.y = 2;
+	static_pieces[1][1].point3.y = 1;
 	static_pieces[1][1].point4.x = 2;
-	static_pieces[1][1].point4.y = 3;
+	static_pieces[1][1].point4.y = 0;
 	static_pieces[1][1].origin.x = 0;
 	static_pieces[1][1].origin.y = 0;
 	static_pieces[1][1].piece_number = 1;
@@ -148,13 +159,13 @@ void pieces_init(void) {
 	static_pieces[1][1].color = 0x07FF; //cyan
 	//i piece, rotation 2
 	static_pieces[1][2].point1.x = 0;
-	static_pieces[1][2].point1.y = 1;
+	static_pieces[1][2].point1.y = 2;
 	static_pieces[1][2].point2.x = 1;
-	static_pieces[1][2].point2.y = 1;
+	static_pieces[1][2].point2.y = 2;
 	static_pieces[1][2].point3.x = 2;
-	static_pieces[1][2].point3.y = 1;
+	static_pieces[1][2].point3.y = 2;
 	static_pieces[1][2].point4.x = 3;
-	static_pieces[1][2].point4.y = 1;
+	static_pieces[1][2].point4.y = 2;
 	static_pieces[1][2].origin.x = 0;
 	static_pieces[1][2].origin.y = 0;
 	static_pieces[1][2].piece_number = 1;
@@ -162,13 +173,13 @@ void pieces_init(void) {
 	static_pieces[1][2].color = 0x07FF; //cyan
 	//i piece, rotation 3
 	static_pieces[1][3].point1.x = 1;
-	static_pieces[1][3].point1.y = 0;
+	static_pieces[1][3].point1.y = 3;
 	static_pieces[1][3].point2.x = 1;
-	static_pieces[1][3].point2.y = 1;
+	static_pieces[1][3].point2.y = 2;
 	static_pieces[1][3].point3.x = 1;
-	static_pieces[1][3].point3.y = 2;
+	static_pieces[1][3].point3.y = 1;
 	static_pieces[1][3].point4.x = 1;
-	static_pieces[1][3].point4.y = 3;
+	static_pieces[1][3].point4.y = 0;
 	static_pieces[1][3].origin.x = 0;
 	static_pieces[1][3].origin.y = 0;
 	static_pieces[1][3].piece_number = 1;
@@ -178,11 +189,11 @@ void pieces_init(void) {
 	static_pieces[2][0].point1.x = 1;
 	static_pieces[2][0].point1.y = 1;
 	static_pieces[2][0].point2.x = 1;
-	static_pieces[2][0].point2.y = 2;
+	static_pieces[2][0].point2.y = 0;
 	static_pieces[2][0].point3.x = 2;
 	static_pieces[2][0].point3.y = 1;
 	static_pieces[2][0].point4.x = 2;
-	static_pieces[2][0].point4.y = 2;
+	static_pieces[2][0].point4.y = 0;
 	static_pieces[2][0].origin.x = 0;
 	static_pieces[2][0].origin.y = 0;
 	static_pieces[2][0].piece_number = 2;
@@ -192,11 +203,11 @@ void pieces_init(void) {
 	static_pieces[2][1].point1.x = 1;
 	static_pieces[2][1].point1.y = 1;
 	static_pieces[2][1].point2.x = 1;
-	static_pieces[2][1].point2.y = 2;
+	static_pieces[2][1].point2.y = 0;
 	static_pieces[2][1].point3.x = 2;
 	static_pieces[2][1].point3.y = 1;
 	static_pieces[2][1].point4.x = 2;
-	static_pieces[2][1].point4.y = 2;
+	static_pieces[2][1].point4.y = 0;
 	static_pieces[2][1].origin.x = 0;
 	static_pieces[2][1].origin.y = 0;
 	static_pieces[2][1].piece_number = 2;
@@ -206,11 +217,11 @@ void pieces_init(void) {
 	static_pieces[2][2].point1.x = 1;
 	static_pieces[2][2].point1.y = 1;
 	static_pieces[2][2].point2.x = 1;
-	static_pieces[2][2].point2.y = 2;
+	static_pieces[2][2].point2.y = 0;
 	static_pieces[2][2].point3.x = 2;
 	static_pieces[2][2].point3.y = 1;
 	static_pieces[2][2].point4.x = 2;
-	static_pieces[2][2].point4.y = 2;
+	static_pieces[2][2].point4.y = 0;
 	static_pieces[2][2].origin.x = 0;
 	static_pieces[2][2].origin.y = 0;
 	static_pieces[2][2].piece_number = 2;
@@ -220,11 +231,11 @@ void pieces_init(void) {
 	static_pieces[2][3].point1.x = 1;
 	static_pieces[2][3].point1.y = 1;
 	static_pieces[2][3].point2.x = 1;
-	static_pieces[2][3].point2.y = 2;
+	static_pieces[2][3].point2.y = 0;
 	static_pieces[2][3].point3.x = 2;
 	static_pieces[2][3].point3.y = 1;
 	static_pieces[2][3].point4.x = 2;
-	static_pieces[2][3].point4.y = 2;
+	static_pieces[2][3].point4.y = 0;
 	static_pieces[2][3].origin.x = 0;
 	static_pieces[2][3].origin.y = 0;
 	static_pieces[2][3].piece_number = 2;
@@ -236,9 +247,9 @@ void pieces_init(void) {
 	static_pieces[3][0].point2.x = 1;
 	static_pieces[3][0].point2.y = 1;
 	static_pieces[3][0].point3.x = 1;
-	static_pieces[3][0].point3.y = 2;
+	static_pieces[3][0].point3.y = 0;
 	static_pieces[3][0].point4.x = 2;
-	static_pieces[3][0].point4.y = 2;
+	static_pieces[3][0].point4.y = 0;
 	static_pieces[3][0].origin.x = 0;
 	static_pieces[3][0].origin.y = 0;
 	static_pieces[3][0].piece_number = 3;
@@ -248,9 +259,9 @@ void pieces_init(void) {
 	static_pieces[3][1].point1.x = 1;
 	static_pieces[3][1].point1.y = 1;
 	static_pieces[3][1].point2.x = 1;
-	static_pieces[3][1].point2.y = 2;
+	static_pieces[3][1].point2.y = 0;
 	static_pieces[3][1].point3.x = 2;
-	static_pieces[3][1].point3.y = 0;
+	static_pieces[3][1].point3.y = 2;
 	static_pieces[3][1].point4.x = 2;
 	static_pieces[3][1].point4.y = 1;
 	static_pieces[3][1].origin.x = 0;
@@ -260,9 +271,9 @@ void pieces_init(void) {
 	static_pieces[3][1].color = 0x07E0; //green
 	//s piece, rotation 2
 	static_pieces[3][2].point1.x = 0;
-	static_pieces[3][2].point1.y = 0;
+	static_pieces[3][2].point1.y = 2;
 	static_pieces[3][2].point2.x = 1;
-	static_pieces[3][2].point2.y = 0;
+	static_pieces[3][2].point2.y = 2;
 	static_pieces[3][2].point3.x = 1;
 	static_pieces[3][2].point3.y = 1;
 	static_pieces[3][2].point4.x = 2;
@@ -276,9 +287,9 @@ void pieces_init(void) {
 	static_pieces[3][3].point1.x = 0;
 	static_pieces[3][3].point1.y = 1;
 	static_pieces[3][3].point2.x = 0;
-	static_pieces[3][3].point2.y = 2;
+	static_pieces[3][3].point2.y = 0;
 	static_pieces[3][3].point3.x = 1;
-	static_pieces[3][3].point3.y = 0;
+	static_pieces[3][3].point3.y = 2;
 	static_pieces[3][3].point4.x = 1;
 	static_pieces[3][3].point4.y = 1;
 	static_pieces[3][3].origin.x = 0;
@@ -288,11 +299,11 @@ void pieces_init(void) {
 	static_pieces[3][3].color = 0x07E0; //green
 	//z piece, rotation 0
 	static_pieces[4][0].point1.x = 0;
-	static_pieces[4][0].point1.y = 2;
+	static_pieces[4][0].point1.y = 0;
 	static_pieces[4][0].point2.x = 1;
 	static_pieces[4][0].point2.y = 1;
 	static_pieces[4][0].point3.x = 1;
-	static_pieces[4][0].point3.y = 2;
+	static_pieces[4][0].point3.y = 0;
 	static_pieces[4][0].point4.x = 2;
 	static_pieces[4][0].point4.y = 1;
 	static_pieces[4][0].origin.x = 0;
@@ -302,13 +313,13 @@ void pieces_init(void) {
 	static_pieces[4][0].color = 0xF800; //red
 	//z piece, rotation 1
 	static_pieces[4][1].point1.x = 1;
-	static_pieces[4][1].point1.y = 0;
+	static_pieces[4][1].point1.y = 2;
 	static_pieces[4][1].point2.x = 1;
 	static_pieces[4][1].point2.y = 1;
 	static_pieces[4][1].point3.x = 2;
 	static_pieces[4][1].point3.y = 1;
 	static_pieces[4][1].point4.x = 2;
-	static_pieces[4][1].point4.y = 2;
+	static_pieces[4][1].point4.y = 0;
 	static_pieces[4][1].origin.x = 0;
 	static_pieces[4][1].origin.y = 0;
 	static_pieces[4][1].piece_number = 4;
@@ -318,11 +329,11 @@ void pieces_init(void) {
 	static_pieces[4][2].point1.x = 0;
 	static_pieces[4][2].point1.y = 1;
 	static_pieces[4][2].point2.x = 1;
-	static_pieces[4][2].point2.y = 0;
+	static_pieces[4][2].point2.y = 2;
 	static_pieces[4][2].point3.x = 1;
 	static_pieces[4][2].point3.y = 1;
 	static_pieces[4][2].point4.x = 2;
-	static_pieces[4][2].point4.y = 0;
+	static_pieces[4][2].point4.y = 2;
 	static_pieces[4][2].origin.x = 0;
 	static_pieces[4][2].origin.y = 0;
 	static_pieces[4][2].piece_number = 4;
@@ -330,13 +341,13 @@ void pieces_init(void) {
 	static_pieces[4][2].color = 0xF800; //red
 	//z piece, rotation 3
 	static_pieces[4][3].point1.x = 0;
-	static_pieces[4][3].point1.y = 0;
+	static_pieces[4][3].point1.y = 2;
 	static_pieces[4][3].point2.x = 0;
 	static_pieces[4][3].point2.y = 1;
 	static_pieces[4][3].point3.x = 1;
 	static_pieces[4][3].point3.y = 1;
 	static_pieces[4][3].point4.x = 1;
-	static_pieces[4][3].point4.y = 2;
+	static_pieces[4][3].point4.y = 0;
 	static_pieces[4][3].origin.x = 0;
 	static_pieces[4][3].origin.y = 0;
 	static_pieces[4][3].piece_number = 4;
@@ -346,7 +357,7 @@ void pieces_init(void) {
 	static_pieces[5][0].point1.x = 0;
 	static_pieces[5][0].point1.y = 1;
 	static_pieces[5][0].point2.x = 0;
-	static_pieces[5][0].point2.y = 2;
+	static_pieces[5][0].point2.y = 0;
 	static_pieces[5][0].point3.x = 1;
 	static_pieces[5][0].point3.y = 1;
 	static_pieces[5][0].point4.x = 2;
@@ -358,13 +369,13 @@ void pieces_init(void) {
 	static_pieces[5][0].color = 0x001F; //blue
 	//j piece, rotation 1
 	static_pieces[5][1].point1.x = 1;
-	static_pieces[5][1].point1.y = 0;
+	static_pieces[5][1].point1.y = 2;
 	static_pieces[5][1].point2.x = 1;
 	static_pieces[5][1].point2.y = 1;
 	static_pieces[5][1].point3.x = 1;
-	static_pieces[5][1].point3.y = 2;
+	static_pieces[5][1].point3.y = 0;
 	static_pieces[5][1].point4.x = 2;
-	static_pieces[5][1].point4.y = 2;
+	static_pieces[5][1].point4.y = 0;
 	static_pieces[5][1].origin.x = 0;
 	static_pieces[5][1].origin.y = 0;
 	static_pieces[5][1].piece_number = 5;
@@ -376,7 +387,7 @@ void pieces_init(void) {
 	static_pieces[5][2].point2.x = 1;
 	static_pieces[5][2].point2.y = 1;
 	static_pieces[5][2].point3.x = 2;
-	static_pieces[5][2].point3.y = 0;
+	static_pieces[5][2].point3.y = 2;
 	static_pieces[5][2].point4.x = 2;
 	static_pieces[5][2].point4.y = 1;
 	static_pieces[5][2].origin.x = 0;
@@ -386,13 +397,13 @@ void pieces_init(void) {
 	static_pieces[5][2].color = 0x001F; //blue
 	//j piece, rotation 3
 	static_pieces[5][3].point1.x = 0;
-	static_pieces[5][3].point1.y = 0;
+	static_pieces[5][3].point1.y = 2;
 	static_pieces[5][3].point2.x = 1;
-	static_pieces[5][3].point2.y = 0;
+	static_pieces[5][3].point2.y = 2;
 	static_pieces[5][3].point3.x = 1;
 	static_pieces[5][3].point3.y = 1;
 	static_pieces[5][3].point4.x = 1;
-	static_pieces[5][3].point4.y = 2;
+	static_pieces[5][3].point4.y = 0;
 	static_pieces[5][3].origin.x = 0;
 	static_pieces[5][3].origin.y = 0;
 	static_pieces[5][3].piece_number = 5;
@@ -406,7 +417,7 @@ void pieces_init(void) {
 	static_pieces[6][0].point3.x = 2;
 	static_pieces[6][0].point3.y = 1;
 	static_pieces[6][0].point4.x = 2;
-	static_pieces[6][0].point4.y = 2;
+	static_pieces[6][0].point4.y = 0;
 	static_pieces[6][0].origin.x = 0;
 	static_pieces[6][0].origin.y = 0;
 	static_pieces[6][0].piece_number = 6;
@@ -414,13 +425,13 @@ void pieces_init(void) {
 	static_pieces[6][0].color = 0xFD20; //orange
 	//l piece, rotation 1
 	static_pieces[6][1].point1.x = 1;
-	static_pieces[6][1].point1.y = 0;
+	static_pieces[6][1].point1.y = 2;
 	static_pieces[6][1].point2.x = 1;
 	static_pieces[6][1].point2.y = 1;
 	static_pieces[6][1].point3.x = 1;
-	static_pieces[6][1].point3.y = 2;
+	static_pieces[6][1].point3.y = 0;
 	static_pieces[6][1].point4.x = 2;
-	static_pieces[6][1].point4.y = 0;
+	static_pieces[6][1].point4.y = 2;
 	static_pieces[6][1].origin.x = 0;
 	static_pieces[6][1].origin.y = 0;
 	static_pieces[6][1].piece_number = 6;
@@ -428,7 +439,7 @@ void pieces_init(void) {
 	static_pieces[6][1].color = 0xFD20; //orange
 	//l piece, rotation 2
 	static_pieces[6][2].point1.x = 0;
-	static_pieces[6][2].point1.y = 0;
+	static_pieces[6][2].point1.y = 2;
 	static_pieces[6][2].point2.x = 0;
 	static_pieces[6][2].point2.y = 1;
 	static_pieces[6][2].point3.x = 1;
@@ -442,23 +453,18 @@ void pieces_init(void) {
 	static_pieces[6][2].color = 0xFD20; //orange
 	//l piece, rotation 3
 	static_pieces[6][3].point1.x = 0;
-	static_pieces[6][3].point1.y = 2;
+	static_pieces[6][3].point1.y = 0;
 	static_pieces[6][3].point2.x = 1;
-	static_pieces[6][3].point2.y = 0;
+	static_pieces[6][3].point2.y = 2;
 	static_pieces[6][3].point3.x = 1;
 	static_pieces[6][3].point3.y = 1;
 	static_pieces[6][3].point4.x = 1;
-	static_pieces[6][3].point4.y = 2;
+	static_pieces[6][3].point4.y = 0;
 	static_pieces[6][3].origin.x = 0;
 	static_pieces[6][3].origin.y = 0;
 	static_pieces[6][3].piece_number = 6;
 	static_pieces[6][3].rotation_number = 3;
 	static_pieces[6][3].color = 0xFD20; //orange
-}
-
-Piece* gen_piece(void) {
-	uint32_t index = Random()%7;
-	return &static_pieces[index][0];
 }
 
 void copy_piece(Piece* dest, Piece* src, Point origin) {
@@ -477,9 +483,37 @@ void copy_piece(Piece* dest, Piece* src, Point origin) {
 	dest->color = src->color;
 }
 
-// 0 = do nothing, 1 = left, 2 = right, rest is down
+Piece* gen_piece(void) {
+	uint32_t index = Random()%7;
+	return &static_pieces[index][0];
+}
+
+void gen_next_piece(void) {
+	ST7735_FillRect(next_piece.point1.x * 8 + 92, next_piece.point1.y * 8 + 30, 8, 8, RIGHT_SIDE_COLOR);
+	ST7735_FillRect(next_piece.point2.x * 8 + 92, next_piece.point2.y * 8 + 30, 8, 8, RIGHT_SIDE_COLOR);
+	ST7735_FillRect(next_piece.point3.x * 8 + 92, next_piece.point3.y * 8 + 30, 8, 8, RIGHT_SIDE_COLOR);
+	ST7735_FillRect(next_piece.point4.x * 8 + 92, next_piece.point4.y * 8 + 30, 8, 8, RIGHT_SIDE_COLOR);	
+	Point origin;
+	origin.x = 0;
+	origin.y = 0;
+	copy_piece(&next_piece, gen_piece(), origin);
+	ST7735_FillRect(next_piece.point1.x * 8 + 92, next_piece.point1.y * 8 + 30, 8, 8, next_piece.color);
+	ST7735_FillRect(next_piece.point2.x * 8 + 92, next_piece.point2.y * 8 + 30, 8, 8, next_piece.color);
+	ST7735_FillRect(next_piece.point3.x * 8 + 92, next_piece.point3.y * 8 + 30, 8, 8, next_piece.color);
+	ST7735_FillRect(next_piece.point4.x * 8 + 92, next_piece.point4.y * 8 + 30, 8, 8, next_piece.color);
+}
+
+// 0 = do nothing, 1 = left, 2 = right, 3 = rotate, 4 = down
 uint8_t get_buttons(void) {
-	//TODO: get the input from
+	uint32_t input = GPIO_PORTE_DATA_R & 0x1B;
+	if(input & 1)
+		return 1;
+	if(input & 2)
+		return 2;
+	if(input & 8)
+		return 3;
+	if(input & 0x10)
+		return 4;
 	return 0;
 }
 
@@ -487,28 +521,30 @@ void draw_start_menu(void) {
 	//TODO: display start screen
 }
 
-void draw_game_start(void) {
-	//TODO: fix appearances
-	ST7735_FillRect(0, 0, 80, 160, 0);
-	ST7735_DrawFastVLine(80, 0, 160, 0xFFFF);
-	ST7735_FillRect(81, 0, 47, 160, 0x7BE0);
-	ST7735_SetCursor(85, 10);
-	ST7735_OutString("Next Piece");
-	ST7735_SetCursor(85, 80);
-	ST7735_OutString("Score");
-}
-
-void draw_piece(Piece* p, uint16_t color) {
-	ST7735_FillRect(p->point1.x * 80, p->point1.y * 160, 8, 8, color);
-	ST7735_FillRect(p->point2.x * 80, p->point2.y * 160, 8, 8, color);
-	ST7735_FillRect(p->point3.x * 80, p->point3.y * 160, 8, 8, color);
-	ST7735_FillRect(p->point4.x * 80, p->point4.y * 160, 8, 8, color);
-}
-
 void draw_score() {
 	//TODO: probably need to fix location of score drawing
 	ST7735_SetCursor(85, 100);
 	LCD_OutDec(score);
+}
+
+void draw_game_start(void) {
+	//TODO: fix appearances - something is wrong with printing strings
+	ST7735_FillRect(0, 0, 80, 160, 0xFFFF);
+	ST7735_DrawFastVLine(80, 0, 160, 0);
+	ST7735_FillRect(81, 0, 47, 160, RIGHT_SIDE_COLOR);
+	ST7735_SetCursor(20, 15);
+	ST7735_OutString("Next Piece");
+	gen_next_piece();
+	ST7735_SetCursor(85, 80);
+	ST7735_OutString("Score");
+	draw_score();
+}
+
+void draw_piece(Piece* p, uint16_t color) {
+	ST7735_FillRect(p->point1.x * 8, p->point1.y * 8, 8, 8, color);
+	ST7735_FillRect(p->point2.x * 8, p->point2.y * 8, 8, 8, color);
+	ST7735_FillRect(p->point3.x * 8, p->point3.y * 8, 8, 8, color);
+	ST7735_FillRect(p->point4.x * 8, p->point4.y * 8, 8, 8, color);
 }
 
 void SysTick_Init(void){
@@ -538,31 +574,12 @@ void SysTick_Handler(void) {
 			play_state = MOVE_LEFT;
 		else if(input == 2)
 			play_state = MOVE_RIGHT;
-		else
+		else if(input == 3)
+			play_state = ROTATE;
+		else if(input == 4)
 			play_state = MOVE_DOWN;
-	}
-}
-
-void game_one(void) {
-	draw_game_start();
-	Point origin;
-	origin.x = 3;
-	origin.y = 3;
-	copy_piece(&current_piece, gen_piece(), origin);
-	copy_piece(&next_piece, gen_piece(), origin);
-	draw_piece(&current_piece, current_piece.color);
-	play_state = DO_NOTHING;
-	//TODO: display the next piece
-	while(mode == ONE_PLAYER) {
-		//TODO: try to move piece
-		play_state = DO_NOTHING;
-	}
-	//TODO: display score screen
-}
-
-void game_two(void) {
-	while(mode == TWO_PLAYER) {
-		
+		else
+			play_state = DO_NOTHING;
 	}
 }
 
@@ -586,11 +603,11 @@ void rotate(void) {
 		return;
 	}
 	// check if something is in the way of the rotation
-	if (board[y1][x1] != 0 || board[y2][x2] != 0 
-			|| board[y3][x3] != 0 || board[y4][x4] != 0) {
+	if (board[y1][x1] != 0xFFFF || board[y2][x2] != 0xFFFF 
+			|| board[y3][x3] != 0xFFFF || board[y4][x4] != 0xFFFF) {
 		return;
 	}
-	draw_piece(&current_piece, 0);
+	draw_piece(&current_piece, 0xFFFF);
 	copy_piece(&current_piece, tmp, current_piece.origin);
 	draw_piece(&current_piece, current_piece.color);
 }
@@ -607,13 +624,13 @@ void left(void) {
 	// if out of bounds
 	if (x1 < 0 || x2 < 0 || x3 < 0 || x4 < 0) return;
 	// if a piece is blocking it from moving
-	if (board[y1][x1] != 0 ||
-			board[y2][x2] != 0 ||
-			board[y3][x3] != 0 ||
-			board[y4][x4] != 0) {
+	if (board[y1][x1] != 0xFFFF ||
+			board[y2][x2] != 0xFFFF ||
+			board[y3][x3] != 0xFFFF ||
+			board[y4][x4] != 0xFFFF) {
 		return;
 	}
-	draw_piece(&current_piece, 0);
+	draw_piece(&current_piece, 0xFFFF);
 	current_piece.point1.x = x1;
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
@@ -634,13 +651,13 @@ void right(void) {
 	// if out of bounds
 	if (x1 >=10 || x2 >= 10 || x3 >= 10 || x4 >= 10) return;
 	// if a piece is blocking it from moving
-	if (board[y1][x1] != 0 ||
-			board[y2][x2] != 0 ||
-			board[y3][x3] != 0 ||
-			board[y4][x4] != 0) {
+	if (board[y1][x1] != 0xFFFF ||
+			board[y2][x2] != 0xFFFF ||
+			board[y3][x3] != 0xFFFF ||
+			board[y4][x4] != 0xFFFF) {
 		return;
 	}
-	draw_piece(&current_piece, 0);
+	draw_piece(&current_piece, 0xFFFF);
 	current_piece.point1.x = x1;
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
@@ -650,7 +667,7 @@ void right(void) {
 }
 
 void place(void) {
-	//TODO: check for full row, clear stuff if there are rows to clear
+	//TODO: check for full row, clear stuff if there are rows to clear, increment and display/update score
 	// mark the piece on the board with the color
 	board[current_piece.point1.y][current_piece.point1.x] = current_piece.color;
 	board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
@@ -667,15 +684,14 @@ void place(void) {
 	// generate a new piece and copy it over
 	Point origin;
 	origin.x = 3;
-	origin.y = 3;
+	origin.y = 0;
 	copy_piece(&current_piece, &next_piece, origin);
 	draw_piece(&current_piece, current_piece.color);
-	copy_piece(&next_piece, gen_piece(), origin);
-	//TODO: render next piece
-	if (board[current_piece.point1.y][current_piece.point1.x] != 0 ||
-		 board[current_piece.point2.y][current_piece.point2.x] != 0 ||
-		 board[current_piece.point3.y][current_piece.point3.x] != 0 ||
-		 board[current_piece.point4.y][current_piece.point4.x] != 0) {
+	gen_next_piece();
+	if (board[current_piece.point1.y][current_piece.point1.x] != 0xFFFF ||
+		 board[current_piece.point2.y][current_piece.point2.x] != 0xFFFF ||
+		 board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
+		 board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
 		mode = FINISHED;
 		return;
 	}
@@ -696,14 +712,14 @@ void down(void) {
 		return;
 	}
 	// if a piece is blocking it from moving
-	if (board[y1][x1] != 0 || 
-			board[y2][x2] != 0 ||
-			board[y3][x3] != 0 ||
-			board[y4][x4] != 0) {
+	if (board[y1][x1] != 0xFFFF || 
+			board[y2][x2] != 0xFFFF ||
+			board[y3][x3] != 0xFFFF ||
+			board[y4][x4] != 0xFFFF) {
 		place();
 		return;
 	}
-	draw_piece(&current_piece, 0);
+	draw_piece(&current_piece, 0xFFFF);
 	current_piece.point1.y = y1;
 	current_piece.point2.y = y2;
 	current_piece.point3.y = y3;
@@ -712,22 +728,58 @@ void down(void) {
 	draw_piece(&current_piece, current_piece.color);
 }
 
+void game_one(void) {
+	draw_game_start();
+	Point origin;
+	origin.x = 3;
+	origin.y = 0;
+	copy_piece(&current_piece, gen_piece(), origin);
+	draw_piece(&current_piece, current_piece.color);
+	play_state = DO_NOTHING;
+	while(mode == ONE_PLAYER) {
+		if(play_state == MOVE_LEFT) {
+			play_state = DO_NOTHING;
+			left();
+		}
+		else if(play_state == MOVE_RIGHT) {
+			play_state = DO_NOTHING;
+			right();
+		}
+		else if(play_state == ROTATE) {
+			play_state = DO_NOTHING;
+			rotate();
+		}
+		else if(play_state == MOVE_DOWN) {
+			play_state = DO_NOTHING;
+			down();
+		}
+	}
+	//TODO: display final score screen
+}
+
+void game_two(void) {
+	while(mode == TWO_PLAYER) {
+		
+	}
+}
+
 int main(void) {
 	TExaS_Init();  // set system clock to 80 MHz
+	ST7735_InitR(INITR_REDTAB);
  	Random_Init(1);
-
- 	ST7735_InitR(INITR_REDTAB);
  	ADC_Init();    // initialize to sample ADC1 (slider)
- 	UART_Init();       // initialize UART
+ 	//UART_Init();       // initialize UART
 	SysTick_Init();
 	board_init();
 	pieces_init();
-	//TODO: initialize buttons, sound, heartbeat
+	buttons_init();
+	//TODO: sound, heartbeat
 	while(1) {
 		draw_start_menu();
 		while(0) { //TODO: waiting for menu selection
 		}
 		score = 0;
+		mode = ONE_PLAYER;
 		if(mode == ONE_PLAYER)
 			game_one();
 		else if(mode == TWO_PLAYER)
