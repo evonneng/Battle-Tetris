@@ -482,7 +482,7 @@ void display_start_menu(void) {
 }
 
 // 0 = do nothing, 1 = left, 2 = right, rest is down
-uint8_t get_input(void) {
+uint8_t get_buttons(void) {
 	//TODO: get the input from
 	return 0;
 }
@@ -490,6 +490,7 @@ uint8_t get_input(void) {
 void draw_game_start(void) {
 	ST7735_FillRect(0, 0, 80, 160, 0);
 	ST7735_DrawFastVLine(80, 0, 160, 0xFFFF);
+	ST7735_FillRect(81, 0, 47, 160, 0x7BE0);
 	ST7735_SetCursor(85, 10);
 	ST7735_OutString("Next Piece");
 	ST7735_SetCursor(85, 80);
@@ -527,7 +528,8 @@ void SysTick_Handler(void) {
 		play_state = MOVE_DOWN;
 		move_down_timer = 0;
 	} else {
-		uint8_t input = get_input();
+		if(play_state != DO_NOTHING) return;
+		uint8_t input = get_buttons();
 		if(input == 0)
 			play_state = DO_NOTHING;
 		else if(input == 1)
@@ -550,9 +552,7 @@ void game_one(void) {
 	play_state = DO_NOTHING;
 	//TODO: display the next piece
 	while(mode == ONE_PLAYER) {
-		draw_piece(&current_piece, 0);
-		//TODO: move piece
-		draw_piece(&current_piece, current_piece.color);
+		//TODO: try to move piece
 		play_state = DO_NOTHING;
 	}
 	//TODO: display score screen
@@ -588,7 +588,9 @@ void rotate(void) {
 			|| board[y3][x3] != 0 || board[y4][x4] != 0) {
 		return;
 	}
+	draw_piece(&current_piece, 0);
 	copy_piece(&current_piece, tmp, current_piece.origin);
+	draw_piece(&current_piece, current_piece.color);
 }
 
 void left(void) {
@@ -609,11 +611,13 @@ void left(void) {
 			board[y4][x4] != 0) {
 		return;
 	}
+	draw_piece(&current_piece, 0);
 	current_piece.point1.x = x1;
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
 	current_piece.point4.x = x4;
 	current_piece.origin.x --;
+	draw_piece(&current_piece, current_piece.color);
 }
 
 void right(void) {
@@ -634,11 +638,13 @@ void right(void) {
 			board[y4][x4] != 0) {
 		return;
 	}
+	draw_piece(&current_piece, 0);
 	current_piece.point1.x = x1;
 	current_piece.point2.x = x2;
 	current_piece.point3.x = x3;
 	current_piece.point4.x = x4;
 	current_piece.origin.x ++;
+	draw_piece(&current_piece, current_piece.color);
 }
 
 void place(void) {
@@ -661,6 +667,7 @@ void place(void) {
 	origin.x = 3;
 	origin.y = 3;
 	copy_piece(&current_piece, &next_piece, origin);
+	draw_piece(&current_piece, current_piece.color);
 	copy_piece(&next_piece, gen_piece(), origin);
 	//TODO: render next piece
 	if (board[current_piece.point1.y][current_piece.point1.x] != 0 ||
@@ -694,11 +701,13 @@ void down(void) {
 		place();
 		return;
 	}
+	draw_piece(&current_piece, 0);
 	current_piece.point1.y = y1;
 	current_piece.point2.y = y2;
 	current_piece.point3.y = y3;
 	current_piece.point4.y = y4;
 	current_piece.origin.y ++;
+	draw_piece(&current_piece, current_piece.color);
 }
 
 int main(void) {
