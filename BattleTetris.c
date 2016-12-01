@@ -708,6 +708,7 @@ void clear_row(int row) {
 
 // naive way of checking if there is a row to be cleared
 void update_score() {
+	int num_cleared;
 	int clear;
 	for (int y = 0; y < 20; y++) {
 		clear = 1; //init to true
@@ -721,13 +722,16 @@ void update_score() {
 		if (clear) {
 			clear_row(y);
 			score += 10; //increment score
+			num_cleared++;
 		}
 	}
 	draw_score();
+	if(mode == TWO_PLAYER) {
+		//TODO: second x character based on # lines
+	}
 }
 
 void place(void) {
-	//TODO: check for full row, clear stuff if there are rows to clear, increment and display/update score
 	// mark the piece on the board with the color
 	board[current_piece.point1.y][current_piece.point1.x] = current_piece.color;
 	board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
@@ -818,11 +822,11 @@ void game_one(void) {
 			down();
 		}
 	}
-	//TODO: display final score screen
 	ST7735_DrawStringS(1, 6, " Game Over ", 0xFFFF, 0, 1);
 }
 
 void game_two(void) {
+	//TODO: waiting for other player
 	char receive;
 	while(FiFo_Get(&receive) == 0) {
 		UART_OutChar('R');
@@ -852,6 +856,9 @@ void game_two(void) {
 			play_state = DO_NOTHING;
 			down();
 		}
+		if(FiFo_Get(&receive) != 0) {
+			//TODO: spawn a junk line based on character - grey color
+		}
 	}
 }
 
@@ -867,7 +874,7 @@ int main(void) {
 	SysTick_Init();
 	EnableInterrupts();
 	Random_Init(NVIC_ST_CURRENT_R);
-	//TODO: sound, heartbeat
+	//TODO: heartbeat
 	while(1) {
 		mode = START_MENU;
 		draw_start_menu();
