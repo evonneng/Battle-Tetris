@@ -56,12 +56,13 @@ void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
 
 void buttons_init(void) { //PE 0, 1, 3, 4
-	SYSCTL_RCGC2_R |= 0x10;  	// 1) enable clock to E
-	uint16_t delay;
-	delay = SYSCTL_RCGC2_R;  	// 2) no need to unlock
-	GPIO_PORTE_DIR_R &= ~0x1B; // Port E is all input switches
-	GPIO_PORTE_AFSEL_R &= ~0x1B;
-	GPIO_PORTE_DEN_R |= 0x1B;
+	SYSCTL_RCGCGPIO_R |= 0x00000010; // 1) activate clock for Port E
+	int delay;
+	delay = SYSCTL_RCGCGPIO_R; // allow time for clock to stabilize
+	GPIO_PORTE_DIR_R &= ~0x1B; // 2) make PE ports input
+	GPIO_PORTE_AFSEL_R &= ~0x1B; // 3) disable alternate function on PE
+	GPIO_PORTE_DEN_R |= 0x1B; // 4) enable digital I/O on PE
+	//GPIO_PORTE_AMSEL_R |= 0x1B; // 5) enable analog function on PE
 }
 
 void board_init(void) {
@@ -506,6 +507,7 @@ void gen_next_piece(void) {
 // 0 = do nothing, 1 = left, 2 = right, 3 = rotate, 4 = down
 uint8_t get_buttons(void) {
 	uint32_t input = GPIO_PORTE_DATA_R & 0x1B;
+	//uint32_t input = GPIO_PORTB_DATA_R & 0xF0;
 	if(input & 1)
 		return 1;
 	if(input & 2)
@@ -517,13 +519,18 @@ uint8_t get_buttons(void) {
 	return 0;
 }
 
+uint32_t get_slider() {
+	uint32_t slider = ADC_In();
+	return slider/68;
+}
+
 void draw_start_menu(void) {
 	//TODO: display start screen
 }
 
 void draw_score() {
 	//TODO: probably need to fix location of score drawing
-	ST7735_SetCursor(85, 100);
+	ST7735_SetCursor(15, 10);
 	LCD_OutDec(score);
 }
 
@@ -532,10 +539,10 @@ void draw_game_start(void) {
 	ST7735_FillRect(0, 0, 80, 160, 0xFFFF);
 	ST7735_DrawFastVLine(80, 0, 160, 0);
 	ST7735_FillRect(81, 0, 47, 160, RIGHT_SIDE_COLOR);
-	ST7735_SetCursor(20, 15);
-	ST7735_OutString("Next Piece");
+	ST7735_SetCursor(15, 0);
+	ST7735_OutString("Next");
 	gen_next_piece();
-	ST7735_SetCursor(85, 80);
+	ST7735_SetCursor(15, 8);
 	ST7735_OutString("Score");
 	draw_score();
 }
@@ -553,21 +560,24 @@ void SysTick_Init(void){
   NVIC_ST_CURRENT_R = 0;                // any write to current clears it
   NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0x00FFFFFF)|0x20000000; // priority 1
   NVIC_ST_CTRL_R = 0x0007;
+	EnableInterrupts();
 }
 
 uint32_t move_down_timer = 0;
-#define MOVE_DOWN_MAX 30
-
+uint8_t past_input = 0;
+uint32_t MOVE_DOWN_MAX = 30;
 void SysTick_Handler(void) {
 	if(mode == START_MENU || mode == FINISHED)
 		return;
+	MOVE_DOWN_MAX = get_slider();
 	move_down_timer++;
-	if(move_down_timer == MOVE_DOWN_MAX) {
+	if(move_down_timer >= MOVE_DOWN_MAX) {
 		play_state = MOVE_DOWN;
 		move_down_timer = 0;
 	} else {
 		if(play_state != DO_NOTHING) return;
 		uint8_t input = get_buttons();
+		if(input == past_input) return;
 		if(input == 0)
 			play_state = DO_NOTHING;
 		else if(input == 1)
@@ -580,6 +590,7 @@ void SysTick_Handler(void) {
 			play_state = MOVE_DOWN;
 		else
 			play_state = DO_NOTHING;
+		past_input = input;
 	}
 }
 
@@ -772,6 +783,7 @@ void game_one(void) {
 	origin.y = 0;
 	copy_piece(&current_piece, gen_piece(), origin);
 	draw_piece(&current_piece, current_piece.color);
+	mode = ONE_PLAYER;
 	play_state = DO_NOTHING;
 	while(mode == ONE_PLAYER) {
 		if(play_state == MOVE_LEFT) {
@@ -801,20 +813,21 @@ void game_two(void) {
 }
 
 int main(void) {
+	DisableInterrupts();
 	TExaS_Init();  // set system clock to 80 MHz
 	ST7735_InitR(INITR_REDTAB);
  	Random_Init(1);
  	ADC_Init();    // initialize to sample ADC1 (slider)
  	//UART_Init();       // initialize UART
-	SysTick_Init();
-	board_init();
 	pieces_init();
 	buttons_init();
+	SysTick_Init();
 	//TODO: sound, heartbeat
 	while(1) {
 		draw_start_menu();
 		while(0) { //TODO: waiting for menu selection
 		}
+		board_init();
 		score = 0;
 		mode = ONE_PLAYER;
 		if(mode == ONE_PLAYER)
