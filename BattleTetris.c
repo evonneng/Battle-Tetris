@@ -602,7 +602,8 @@ void SysTick_Handler(void) {
 	}
 }
 
-void rotate(void) {	
+void rotate(void) {
+	Sound_Rotate();	
 	uint16_t next_rot = (current_piece.rotation_number+1)%4;
 	Piece *tmp = &static_pieces[current_piece.piece_number][next_rot];
 	// calculate location of the next rotated pieces
@@ -632,6 +633,7 @@ void rotate(void) {
 }
 
 void left(void) {
+	Sound_Left();
 	int x1 = current_piece.point1.x-1;
 	int x2 = current_piece.point2.x-1;
 	int x3 = current_piece.point3.x-1;
@@ -659,6 +661,7 @@ void left(void) {
 }
 
 void right(void) {
+	Sound_Right();
 	int x1 = current_piece.point1.x+1;
 	int x2 = current_piece.point2.x+1;
 	int x3 = current_piece.point3.x+1;
@@ -735,6 +738,7 @@ void place(void) {
 			current_piece.point3.y == 0 ||
 			current_piece.point4.y == 0) {
 		mode = FINISHED;
+		Sound_Game_Over();
 		return;
 	}
 	// generate a new piece and copy it over
@@ -749,6 +753,7 @@ void place(void) {
 		 board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
 		 board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
 		mode = FINISHED;
+		Sound_Game_Over();
 		return;
 	}
 }
