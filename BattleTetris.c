@@ -13,6 +13,7 @@
 #define ONE_PLAYER 1
 #define TWO_PLAYER 2
 #define FINISHED 3
+#define WAITING_TWO 4
 
 #define DO_NOTHING 0
 #define MOVE_LEFT 1
@@ -587,12 +588,14 @@ uint32_t move_down_timer = 0;
 uint8_t past_input = 0;
 uint32_t MOVE_DOWN_MAX = 30;
 void SysTick_Handler(void) {
-	PF2 ^= 0x4;
-	if(mode == START_MENU || mode == FINISHED)
+	if(mode == START_MENU || mode == FINISHED || mode == WAITING_TWO) {
+		PF2 ^= 0x4;
 		return;
+	}
 	MOVE_DOWN_MAX = get_slider();
 	move_down_timer++;
 	if(move_down_timer >= MOVE_DOWN_MAX) {
+		PF2 ^= 0x4;
 		play_state = MOVE_DOWN;
 		move_down_timer = 0;
 	} else {
@@ -739,7 +742,7 @@ void update_score() {
 	draw_score();
 	if(mode == TWO_PLAYER) {
 		//TODO: send x character based on # lines
-		UART_OutChar((char)num_cleared);
+		UART_OutChar((char)(num_cleared + 0x30));
 	}
 }
 
@@ -756,7 +759,7 @@ void place(void) {
 			current_piece.point3.y == 0 ||
 			current_piece.point4.y == 0) {
 		if(mode == TWO_PLAYER) {
-			UART_OutChar('D');
+			UART_OutChar('Z');
 		}
 		mode = FINISHED;
 		Sound_Game_Over();
@@ -774,7 +777,7 @@ void place(void) {
 		 board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
 		 board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
 		if(mode == TWO_PLAYER) {
-			UART_OutChar('D');
+			UART_OutChar('Z');
 		}
 		mode = FINISHED;
 		Sound_Game_Over();
@@ -859,7 +862,7 @@ void spawn_place(void) {
          current_piece.point4.y == 0) {
       mode = FINISHED;
       Sound_Game_Over();
-			UART_OutChar('D');
+			UART_OutChar('Z');
    }
 }
 
@@ -878,7 +881,7 @@ void spawn_gen(void) {
        board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
       mode = FINISHED;
       Sound_Game_Over();
-			UART_OutChar('D');
+			UART_OutChar('Z');
    }
 }
 
@@ -920,7 +923,10 @@ void spawn_line(void) {
 
 void game_two(void) {
 	//TODO: waiting for other player (display something?)
+	ST7735_DrawStringS(4, 6, " Waiting for ", 0xFFFF, 0, 1);
+	ST7735_DrawStringS(5, 10, " Opponent ", 0xFFFF, 0, 1);
 	char receive;
+	UART_OutChar('R');
 	while(FiFo_Get(&receive) == 0) {
 		UART_OutChar('R'); 
 	}
@@ -950,22 +956,26 @@ void game_two(void) {
 			down();
 		}
 		if(FiFo_Get(&receive) != 0) {
-			if(receive == 'D') {
+			if(receive == 'Z') {
 				mode = FINISHED;
 				break;
 			}
 			if(receive == 'R') {
-				UART_OutChar('R');
+				UART_OutChar('S');
 				continue;
 			}
+			if(receive == 'S')
+				continue;
 			//TODO: spawn a junk line based on character - grey color
-			uint8_t num_spawn = (uint8_t)receive;
-			for (int i = 0; i < num_spawn; i++) {
-				spawn_line(); 
+			if(receive >= '1' && receive <= '4') {
+				uint8_t num_spawn = (uint8_t)receive - 0x30;
+				for (int i = 0; i < num_spawn; i++) {
+					spawn_line(); 
+				}
 			}
 		}
 	}
-	if(receive == 'D') {
+	if(receive == 'Z') {
 		ST7735_DrawStringS(1, 6, " You Win! ", 0xFFFF, 0, 1);
 	} else {
 		ST7735_DrawStringS(1, 6, " You Lose! ", 0xFFFF, 0, 1);
@@ -988,13 +998,18 @@ int main(void) {
 	while(1) {
 		mode = START_MENU;
 		draw_start_menu();
-		while(get_buttons() == 0);
-		mode = (get_buttons() == 3)? ONE_PLAYER : TWO_PLAYER;
+		char junk;
+		while(FiFo_Get(&junk) != 0); //clear the fifo queue
+		int buttons;
+		do {
+			buttons = get_buttons();
+		} while(buttons == 0);
+		mode = (buttons == 3)? ONE_PLAYER : WAITING_TWO;
 		board_init();
 		score = 0;
 		if(mode == ONE_PLAYER)
 			game_one();
-		else if(mode == TWO_PLAYER)
+		else if(mode == WAITING_TWO)
 			game_two();
 		while(get_buttons() == 0);
 		while(get_buttons() != 0);
