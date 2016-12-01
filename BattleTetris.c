@@ -545,7 +545,6 @@ uint32_t get_slider() {
 }
 
 void draw_start_menu(void) {
-	//TODO: display start screen
 	ST7735_FillRect(0, 0, 128, 5, 0x7BE0);
 	ST7735_FillRect(0, 0, 5, 160, 0x7BE0);
 	ST7735_FillRect(124, 0, 5, 160, 0x7BE0);
@@ -557,7 +556,6 @@ void draw_start_menu(void) {
 }
 
 void draw_score() {
-	//TODO: make score look better
 	ST7735_SetCursor(15, 10);
 	LCD_OutDec(score);
 }
@@ -742,7 +740,7 @@ void update_score() {
 	}
 	draw_score();
 	if(mode == TWO_PLAYER) {
-		//TODO: second x character based on # lines
+		//TODO: send x character based on # lines
 	}
 }
 
@@ -840,6 +838,75 @@ void game_one(void) {
 	ST7735_DrawStringS(1, 6, " Game Over ", 0xFFFF, 0, 1);
 }
 
+//place the piece but do not generate a new piece
+void spawn_place(void) {
+   // mark the piece on the board with the color
+   board[current_piece.point1.y][current_piece.point1.x] = current_piece.color;
+   board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
+   board[current_piece.point3.y][current_piece.point3.x] = current_piece.color;
+   board[current_piece.point4.y][current_piece.point4.x] = current_piece.color;
+   update_score();
+   // check if the placed piece is above the cutoff for the game
+   if (current_piece.point1.y == 0 ||
+         current_piece.point2.y == 0 ||
+         current_piece.point3.y == 0 ||
+         current_piece.point4.y == 0) {
+      mode = FINISHED;
+      Sound_Game_Over();
+   }
+}
+
+// generate a new piece after placing a piece
+void spawn_gen(void) {
+	// generate a new piece and copy it over
+   Point origin;
+   origin.x = 3;
+   origin.y = 0;
+   copy_piece(&current_piece, &next_piece, origin);
+   draw_piece(&current_piece, current_piece.color);
+   gen_next_piece();
+   if (board[current_piece.point1.y][current_piece.point1.x] != 0xFFFF ||
+       board[current_piece.point2.y][current_piece.point2.x] != 0xFFFF ||
+       board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
+       board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
+      mode = FINISHED;
+      Sound_Game_Over();
+   }
+}
+
+// create a new line with a single blank in the middle
+void spawn_line(void) {
+	bool placed = false;
+	// check if current piece will collide with moving up
+	if (board[current_piece.point1.y+1][current_piece.point1.x] != 0xFFFF ||
+			board[current_piece.point2.y+1][current_piece.point2.x] != 0xFFFF ||
+			board[current_piece.point3.y+1][current_piece.point3.x] != 0xFFFF ||
+			board[current_piece.point4.y+1][current_piece.point4.x] != 0xFFFF) {
+		spawn_place();
+		placed = true;
+	}
+	// copy all of the lines to the line above
+	for (int y = 18; y >= 0; y--) {
+		for (int x = 0; x < 10; x ++) {
+			board[y][x] = board[y+1][x]
+		}
+	}
+	// generate a random index and fill the bottom row
+	uint32_t index = Random()%10;
+	for (int x = 0; i < 10; x++) {
+		if (x == index) {
+			// set random index as blank
+			board[0][index] = 0xFFFF;
+			continue;
+		}
+		board[0][x] = 0x7BEF;
+	}
+	// after/if the piece is placed, create a new piece
+	if (placed) {
+		spawn_gen();
+	}
+}
+
 void game_two(void) {
 	//TODO: waiting for other player
 	char receive;
@@ -873,6 +940,7 @@ void game_two(void) {
 		}
 		if(FiFo_Get(&receive) != 0) {
 			//TODO: spawn a junk line based on character - grey color
+			spawn_line();
 		}
 	}
 }
