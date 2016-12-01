@@ -954,6 +954,10 @@ void game_two(void) {
 				mode = FINISHED;
 				break;
 			}
+			if(receive == 'R') {
+				UART_OutChar('R');
+				continue;
+			}
 			//TODO: spawn a junk line based on character - grey color
 			uint8_t num_spawn = (uint8_t)receive;
 			for (int i = 0; i < num_spawn; i++) {
