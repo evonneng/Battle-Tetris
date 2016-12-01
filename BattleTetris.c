@@ -61,8 +61,6 @@ uint32_t score;
 uint32_t key_pressed = 0;
 uint32_t heartbeat = 0;
 
-static const uint32_t period[4] = {0, 5682, 5062, 4778};
-
 void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
 
@@ -778,6 +776,7 @@ void place(void) {
 }
 
 void down(void) {
+	Sound_Left();
 	int x1 = current_piece.point1.x;
 	int x2 = current_piece.point2.x;
 	int x3 = current_piece.point3.x;
@@ -874,8 +873,8 @@ void spawn_gen(void) {
    }
 }
 
-// create a new line with a single blank in the middle
-void spawn_line(void) {
+// create a new line with a single blank in the middle EVONNE
+/*void spawn_line(void) {
 	bool placed = false;
 	// check if current piece will collide with moving up
 	if (board[current_piece.point1.y+1][current_piece.point1.x] != 0xFFFF ||
@@ -905,10 +904,10 @@ void spawn_line(void) {
 	if (placed) {
 		spawn_gen();
 	}
-}
+}*/
 
 void game_two(void) {
-	//TODO: waiting for other player
+	//TODO: waiting for other player (display something?)
 	char receive;
 	while(FiFo_Get(&receive) == 0) {
 		UART_OutChar('R');
@@ -940,7 +939,7 @@ void game_two(void) {
 		}
 		if(FiFo_Get(&receive) != 0) {
 			//TODO: spawn a junk line based on character - grey color
-			spawn_line();
+			//spawn_line(); EVONNE
 		}
 	}
 }
@@ -958,7 +957,6 @@ int main(void) {
 	SysTick_Init();
 	EnableInterrupts();
 	Random_Init(NVIC_ST_CURRENT_R);
-	//TODO: heartbeat
 	while(1) {
 		mode = START_MENU;
 		draw_start_menu();

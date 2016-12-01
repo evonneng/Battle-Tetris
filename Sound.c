@@ -8,6 +8,7 @@
 #include "Sound.h"
 #include "DAC.h"
 #include "Timer0.h"
+#include "tm4c123gh6pm.h"
 
 extern uint32_t key_pressed;
 uint32_t counts = 0;
@@ -277,14 +278,25 @@ const uint8_t rotate_sound[1054] = {
   144, 139, 144, 139, 139, 139, 139, 139, 144, 139, 144, 144, 139, 144, 144, 139, 139, 144, 139, 144, 
   144, 139, 144, 139, 139, 144, 144, 139, 144, 139, 144, 139, 139, 139};
 
+static const uint8_t Sound_data[32] = {15, 15, 15, 14, 14, 13, 12, 11,
+																			 10,  9,  8,  7,  6,  5,  4,  4,
+																			  3,  3,  3,  4,  4,  5,  6,  7,
+																			  8,  9, 10, 11, 12, 13, 14, 14};
 const uint8_t *Sound_pt;
 volatile uint32_t Sound_Count;
 volatile uint32_t Timer_Count;
-
+volatile uint32_t Sine_Count;
 void Sound_Out(void) {
 	if (Timer_Count < Sound_Count) {
-		DAC_Out(Sound_pt[Timer_Count]);
-		Timer_Count++;
+		DAC_Out(Sound_data[Sine_Count]);
+		Sine_Count++;
+		if(Sine_Count == 32) {
+			Sine_Count = 0;
+			Timer_Count++;
+			TIMER0_CTL_R = 0x00000000;
+			TIMER0_TAILR_R = 32 * *(++Sound_pt)-1;
+			TIMER0_CTL_R = 0x00000001;
+		}
 	}
 }
 
@@ -297,6 +309,10 @@ void Sound_Play(const uint8_t *pt, uint32_t count){
 	Sound_Count = count;
 	Sound_pt = pt;
 	Timer_Count = 0;
+	Sine_Count = 0;
+	TIMER0_CTL_R = 0x00000000;
+	TIMER0_TAILR_R = 32*pt[0]-1;
+	TIMER0_CTL_R = 0x00000001;
 }
 
 void Sound_Left(void) {
