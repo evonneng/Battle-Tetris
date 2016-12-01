@@ -1141,31 +1141,27 @@ const uint8_t highpitch[1802] = {
   67, 119, 148, 166, 164, 238, 223, 202, 174, 112, 96, 78, 0, 34, 54, 99, 143, 160, 166, 183, 
   250, 207};
 
-void SysTick_Handler(void) {
-	if (key_pressed == 0) {
-		DAC_Out(0);
-	} else {
-		DAC_Out(shoot[counts]);
-		counts = (counts + 1) & 0x0F;
+const uint8_t *Sound_pt;
+volatile uint32_t Sound_Count;
+volatile uint32_t Timer_Count;
+
+void Sound_Out(void) {
+	if (Timer_Count < Sound_Count) {
+		DAC_Out(Sound_pt[Timer_Count]);
+		Timer_Count++;
 	}
 }
 
 void Sound_Init(void){
 	DAC_Init();
-	Timer0_Init(SysTick_Handler,0);
+	Timer0_Init(Sound_Out, 80000000/11025);
 };
 
-void Sound_Play_Basic(uint32_t period) {
-	long sr;
-	sr = StartCritical(); //starting critical region, disable interrupts
-	TIMER0_ST_CTRL_R = 0;         // disable SysTick during setup
-	TIMER0_ST_RELOAD_R = period - 1;
-	TIMER0_ST_CTRL_R = TIMER0_ST_CTRL_ENABLE + TIMER0_ST_CTRL_CLK_SRC + TIMER0_ST_CTRL_INTEN;
-	EndCritical(sr); //ending critical region, enable interrupts
-}
 
 void Sound_Play(const uint8_t *pt, uint32_t count){
-// write this
+	Sound_Count = count;
+	Sound_pt = pt;
+	Timer_Count = 0;
 };
 void Sound_Shoot(void){
 // write this
