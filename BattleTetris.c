@@ -876,14 +876,14 @@ void spawn_gen(void) {
 
 // create a new line with a single blank in the middle 
 void spawn_line(void) {
-	bool placed = false;
+	int placed = 0;
 	// check if current piece will collide with moving up
 	if (board[current_piece.point1.y+1][current_piece.point1.x] != 0xFFFF ||
 			board[current_piece.point2.y+1][current_piece.point2.x] != 0xFFFF ||
 			board[current_piece.point3.y+1][current_piece.point3.x] != 0xFFFF ||
 			board[current_piece.point4.y+1][current_piece.point4.x] != 0xFFFF) {
 		spawn_place();
-		placed = true;
+		placed = 1;
 	}
 	// copy all of the lines to the line above
 	for (int y = 18; y >= 0; y--) {
@@ -940,7 +940,7 @@ void game_two(void) {
 		}
 		if(FiFo_Get(&receive) != 0) {
 			//TODO: spawn a junk line based on character - grey color
-			uint8_t num_spawn = (uint8_t)recieve;
+			uint8_t num_spawn = (uint8_t)receive;
 			for (int i = 0; i < num_spawn; i++) {
 				spawn_line(); 
 			}
