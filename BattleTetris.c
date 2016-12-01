@@ -940,7 +940,7 @@ void game_two(void) {
 		}
 		if(FiFo_Get(&receive) != 0) {
 			//TODO: spawn a junk line based on character - grey color
-			uint8_t num_spawn = (uint8_t)UART_InChar();
+			uint8_t num_spawn = (uint8_t)recieve;
 			for (int i = 0; i < num_spawn; i++) {
 				spawn_line(); 
 			}
