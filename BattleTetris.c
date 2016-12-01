@@ -525,22 +525,29 @@ uint32_t get_slider() {
 
 void draw_start_menu(void) {
 	//TODO: display start screen
+	ST7735_FillRect(0, 0, 128, 5, 0x7BE0);
+	ST7735_FillRect(0, 0, 5, 160, 0x7BE0);
+	ST7735_FillRect(124, 0, 5, 160, 0x7BE0);
+	ST7735_FillRect(0, 156, 128, 5, 0x7BE0);
+	ST7735_FillRect(5, 5, 120, 152, 0xC618);
+	ST7735_DrawStringS(2, 2, "TETRIS", 0x001F, 0xC618, 3);
+	ST7735_DrawStringS(6, 6, "One Player", 0xF800, 0xC618, 1);
+	ST7735_DrawStringS(6, 10, "Two Player", 0x03EF, 0xC618, 1);
 }
 
 void draw_score() {
-	//TODO: probably need to fix location of score drawing
+	//TODO: make score look better
 	ST7735_SetCursor(15, 10);
 	LCD_OutDec(score);
 }
 
 void draw_game_start(void) {
-	//TODO: fix appearances - something is wrong with printing strings
 	ST7735_FillRect(0, 0, 80, 160, 0xFFFF);
 	ST7735_DrawFastVLine(80, 0, 160, 0);
 	ST7735_FillRect(81, 0, 47, 160, RIGHT_SIDE_COLOR);
-	ST7735_DrawStringS(15, 0, "Next", 0xFFFF, RIGHT_SIDE_COLOR);
+	ST7735_DrawStringS(15, 0, "Next", 0xFFFF, RIGHT_SIDE_COLOR, 1);
 	gen_next_piece();
-	ST7735_DrawStringS(15, 8, "Score", 0xFFFF, RIGHT_SIDE_COLOR);
+	ST7735_DrawStringS(15, 8, "Score", 0xFFFF, RIGHT_SIDE_COLOR, 1);
 	draw_score();
 }
 
@@ -801,6 +808,8 @@ void game_one(void) {
 		}
 	}
 	//TODO: display final score screen
+	ST7735_DrawStringS(2, 6, " Final Score: ", 0xFFFF, 0, 1);
+	LCD_OutDec(score);
 }
 
 void game_two(void) {
@@ -821,16 +830,17 @@ int main(void) {
 	SysTick_Init();
 	//TODO: sound, heartbeat
 	while(1) {
+		mode = START_MENU;
 		draw_start_menu();
-		while(0) { //TODO: waiting for menu selection
-		}
+		while(get_buttons() == 0);
+		mode = (get_buttons() == 3)? ONE_PLAYER : TWO_PLAYER;
 		board_init();
 		score = 0;
-		mode = ONE_PLAYER;
 		if(mode == ONE_PLAYER)
 			game_one();
 		else if(mode == TWO_PLAYER)
 			game_two();
-		//TODO: click a button to go back to start menu from finished
+		while(get_buttons() == 0);
+		while(get_buttons() != 0);
 	}
 }

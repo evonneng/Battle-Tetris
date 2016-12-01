@@ -1102,13 +1102,13 @@ uint32_t ST7735_DrawString(uint16_t x, uint16_t y, char *pt, int16_t textColor){
   return count;  // number of characters printed
 }
 
-uint32_t ST7735_DrawStringS(uint16_t x, uint16_t y, char *pt, int16_t textColor, int16_t bgColor){
+uint32_t ST7735_DrawStringS(uint16_t x, uint16_t y, char *pt, int16_t textColor, int16_t bgColor, uint8_t size){
   uint32_t count = 0;
   if(y>15) return 0;
   while(*pt){
-    ST7735_DrawCharS(x*6, y*10, *pt, textColor, bgColor, 1);
+    ST7735_DrawCharS(x*6, y*10, *pt, textColor, bgColor, size);
     pt++;
-    x = x+1;
+    x = x+size;
     if(x>20) return count;  // number of characters printed
     count++;
   }
