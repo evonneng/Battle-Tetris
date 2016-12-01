@@ -229,7 +229,7 @@ void ST7735_DrawChar(int16_t x, int16_t y, char c, int16_t textColor, int16_t bg
 // Output: number of characters printed
 uint32_t ST7735_DrawString(uint16_t x, uint16_t y, char *pt, int16_t textColor);;
 
-
+uint32_t ST7735_DrawStringS(uint16_t x, uint16_t y, char *pt, int16_t textColor, int16_t bgColor);
 
 //********ST7735_SetCursor*****************
 // Move the cursor to the desired X- and Y-position.  The

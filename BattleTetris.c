@@ -507,7 +507,6 @@ void gen_next_piece(void) {
 // 0 = do nothing, 1 = left, 2 = right, 3 = rotate, 4 = down
 uint8_t get_buttons(void) {
 	uint32_t input = GPIO_PORTE_DATA_R & 0x1B;
-	//uint32_t input = GPIO_PORTB_DATA_R & 0xF0;
 	if(input & 1)
 		return 1;
 	if(input & 2)
@@ -539,11 +538,9 @@ void draw_game_start(void) {
 	ST7735_FillRect(0, 0, 80, 160, 0xFFFF);
 	ST7735_DrawFastVLine(80, 0, 160, 0);
 	ST7735_FillRect(81, 0, 47, 160, RIGHT_SIDE_COLOR);
-	ST7735_SetCursor(15, 0);
-	ST7735_OutString("Next");
+	ST7735_DrawStringS(15, 0, "Next", 0xFFFF, RIGHT_SIDE_COLOR);
 	gen_next_piece();
-	ST7735_SetCursor(15, 8);
-	ST7735_OutString("Score");
+	ST7735_DrawStringS(15, 8, "Score", 0xFFFF, RIGHT_SIDE_COLOR);
 	draw_score();
 }
 
