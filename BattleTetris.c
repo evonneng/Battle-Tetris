@@ -5,6 +5,7 @@
 #include "TExaS.h"
 #include "ADC.h"
 #include "UART.h"
+#include "Sound.h"
 
 #define START_MENU 0
 #define ONE_PLAYER 1
@@ -568,7 +569,6 @@ void SysTick_Init(void){
   NVIC_ST_CURRENT_R = 0;                // any write to current clears it
   NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0x00FFFFFF)|0x20000000; // priority 1
   NVIC_ST_CTRL_R = 0x0007;
-	EnableInterrupts();
 }
 
 uint32_t move_down_timer = 0;
@@ -812,8 +812,7 @@ void game_one(void) {
 		}
 	}
 	//TODO: display final score screen
-	ST7735_DrawStringS(2, 6, " Final Score: ", 0xFFFF, 0, 1);
-	LCD_OutDec(score);
+	ST7735_DrawStringS(1, 6, " Game Over ", 0xFFFF, 0, 1);
 }
 
 void game_two(void) {
@@ -826,13 +825,14 @@ int main(void) {
 	DisableInterrupts();
 	TExaS_Init();  // set system clock to 80 MHz
 	ST7735_InitR(INITR_REDTAB);
- 	Random_Init(1);
  	ADC_Init();    // initialize to sample ADC1 (slider)
  	//UART_Init();       // initialize UART
 	pieces_init();
 	buttons_init();
 	SysTick_Init();
 	Sound_Init();
+	EnableInterrupts();
+	Random_Init(NVIC_ST_CURRENT_R);
 	//TODO: sound, heartbeat
 	while(1) {
 		mode = START_MENU;

@@ -1141,7 +1141,7 @@ const uint8_t highpitch[1802] = {
   67, 119, 148, 166, 164, 238, 223, 202, 174, 112, 96, 78, 0, 34, 54, 99, 143, 160, 166, 183, 
   250, 207};
 
-void SysTick_Handler(void) {
+void Sound_Handler(void) {
 	if (key_pressed == 0) {
 		DAC_Out(0);
 	} else {
@@ -1152,16 +1152,16 @@ void SysTick_Handler(void) {
 
 void Sound_Init(void){
 	DAC_Init();
-	Timer0_Init(SysTick_Handler,0);
+	Timer0_Init(Sound_Handler,0);
 };
 
 void Sound_Play_Basic(uint32_t period) {
-	long sr;
+	/*long sr;
 	sr = StartCritical(); //starting critical region, disable interrupts
 	NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
 	NVIC_ST_RELOAD_R = period - 1;
 	NVIC_ST_CTRL_R = NVIC_ST_CTRL_ENABLE+NVIC_ST_CTRL_CLK_SRC+NVIC_ST_CTRL_INTEN;
-	EndCritical(sr); //ending critical region, enable interrupts
+	EndCritical(sr); //ending critical region, enable interrupts*/
 }
 
 void Sound_Play(const uint8_t *pt, uint32_t count){
