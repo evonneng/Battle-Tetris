@@ -1158,9 +1158,9 @@ void Sound_Init(void){
 void Sound_Play_Basic(uint32_t period) {
 	long sr;
 	sr = StartCritical(); //starting critical region, disable interrupts
-	NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
-	NVIC_ST_RELOAD_R = period - 1;
-	NVIC_ST_CTRL_R = NVIC_ST_CTRL_ENABLE+NVIC_ST_CTRL_CLK_SRC+NVIC_ST_CTRL_INTEN;
+	TIMER0_ST_CTRL_R = 0;         // disable SysTick during setup
+	TIMER0_ST_RELOAD_R = period - 1;
+	TIMER0_ST_CTRL_R = TIMER0_ST_CTRL_ENABLE + TIMER0_ST_CTRL_CLK_SRC + TIMER0_ST_CTRL_INTEN;
 	EndCritical(sr); //ending critical region, enable interrupts
 }
 
