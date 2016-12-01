@@ -577,11 +577,11 @@ void draw_piece(Piece* p, uint16_t color) {
 }
 
 void SysTick_Init(void){
-  NVIC_ST_CTRL_R = 0;                   // disable SysTick during setup
-  NVIC_ST_RELOAD_R = 2000000-1;  // maximum reload value
-  NVIC_ST_CURRENT_R = 0;                // any write to current clears it
-  NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0x00FFFFFF)|0x20000000; // priority 1
-  NVIC_ST_CTRL_R = 0x0007;
+	NVIC_ST_CTRL_R = 0;                   // disable SysTick during setup
+	NVIC_ST_RELOAD_R = 2000000-1;  // maximum reload value
+	NVIC_ST_CURRENT_R = 0;                // any write to current clears it
+	NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0x00FFFFFF)|0x20000000; // priority 1
+	NVIC_ST_CTRL_R = 0x0007;
 }
 
 uint32_t move_down_timer = 0;
@@ -849,40 +849,40 @@ void game_one(void) {
 
 //place the piece but do not generate a new piece
 void spawn_place(void) {
-   // mark the piece on the board with the color
-   board[current_piece.point1.y][current_piece.point1.x] = current_piece.color;
-   board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
-   board[current_piece.point3.y][current_piece.point3.x] = current_piece.color;
-   board[current_piece.point4.y][current_piece.point4.x] = current_piece.color;
-   update_score();
-   // check if the placed piece is above the cutoff for the game
-   if (current_piece.point1.y == 0 ||
-         current_piece.point2.y == 0 ||
-         current_piece.point3.y == 0 ||
-         current_piece.point4.y == 0) {
-      mode = FINISHED;
-      Sound_Game_Over();
-			UART_OutChar('Z');
+	// mark the piece on the board with the color
+	board[current_piece.point1.y][current_piece.point1.x] = current_piece.color;
+	board[current_piece.point2.y][current_piece.point2.x] = current_piece.color;
+	board[current_piece.point3.y][current_piece.point3.x] = current_piece.color;
+	board[current_piece.point4.y][current_piece.point4.x] = current_piece.color;
+	update_score();
+	// check if the placed piece is above the cutoff for the game
+	if (current_piece.point1.y == 0 ||
+		current_piece.point2.y == 0 ||
+		current_piece.point3.y == 0 ||
+		current_piece.point4.y == 0) {
+		mode = FINISHED;
+		Sound_Game_Over();
+		UART_OutChar('Z');
    }
 }
 
 // generate a new piece after placing a piece
 void spawn_gen(void) {
 	// generate a new piece and copy it over
-   Point origin;
-   origin.x = 3;
-   origin.y = 0;
-   copy_piece(&current_piece, &next_piece, origin);
-   draw_piece(&current_piece, current_piece.color);
-   gen_next_piece();
-   if (board[current_piece.point1.y][current_piece.point1.x] != 0xFFFF ||
-       board[current_piece.point2.y][current_piece.point2.x] != 0xFFFF ||
-       board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
-       board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
-      mode = FINISHED;
-      Sound_Game_Over();
-			UART_OutChar('Z');
-   }
+	Point origin;
+	origin.x = 3;
+	origin.y = 0;
+	copy_piece(&current_piece, &next_piece, origin);
+	draw_piece(&current_piece, current_piece.color);
+	gen_next_piece();
+	if (board[current_piece.point1.y][current_piece.point1.x] != 0xFFFF ||
+		board[current_piece.point2.y][current_piece.point2.x] != 0xFFFF ||
+		board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
+		board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
+		mode = FINISHED;
+		Sound_Game_Over();
+		UART_OutChar('Z');
+	}
 }
 
 // create a new line with a single blank in the middle 
