@@ -20,6 +20,10 @@
 #define MOVE_DOWN 3
 #define ROTATE 4
 
+#define PF1       (*((volatile uint32_t *)0x40025008))
+#define PF2       (*((volatile uint32_t *)0x40025010))
+#define PF3       (*((volatile uint32_t *)0x40025020))
+
 #define RIGHT_SIDE_COLOR 0x7BE0 //olive
 
 typedef struct Point {
@@ -70,6 +74,16 @@ void buttons_init(void) { //PE 0, 1, 3, 4
 	GPIO_PORTE_AFSEL_R &= ~0x1B; // 3) disable alternate function on PE
 	GPIO_PORTE_DEN_R |= 0x1B; // 4) enable digital I/O on PE
 	//GPIO_PORTE_AMSEL_R |= 0x1B; // 5) enable analog function on PE
+}
+
+void PortF_Init(void){
+  // Intialize PortF for hearbeat
+	SYSCTL_RCGCGPIO_R |= 0x00000020;
+	int delay;
+	delay = SYSCTL_RCGCGPIO_R;
+	GPIO_PORTF_DIR_R |= 0x0E;
+	GPIO_PORTF_AFSEL_R &= ~0x0E;
+	GPIO_PORTF_DEN_R |= 0x0E;
 }
 
 void board_init(void) {
@@ -577,6 +591,7 @@ uint32_t move_down_timer = 0;
 uint8_t past_input = 0;
 uint32_t MOVE_DOWN_MAX = 30;
 void SysTick_Handler(void) {
+	PF2 ^= 0x4;
 	if(mode == START_MENU || mode == FINISHED)
 		return;
 	MOVE_DOWN_MAX = get_slider();
@@ -868,6 +883,7 @@ int main(void) {
 	ST7735_InitR(INITR_REDTAB);
  	ADC_Init();    // initialize to sample ADC1 (slider)
  	UART_Init();       // initialize UART
+	PortF_Init();
 	pieces_init();
 	//buttons_init();
 	Sound_Init();
