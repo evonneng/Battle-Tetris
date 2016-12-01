@@ -755,6 +755,9 @@ void place(void) {
 			current_piece.point2.y == 0 ||
 			current_piece.point3.y == 0 ||
 			current_piece.point4.y == 0) {
+		if(mode == TWO_PLAYER) {
+			UART_OutChar('D');
+		}
 		mode = FINISHED;
 		Sound_Game_Over();
 		return;
@@ -770,6 +773,9 @@ void place(void) {
 		 board[current_piece.point2.y][current_piece.point2.x] != 0xFFFF ||
 		 board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
 		 board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
+		if(mode == TWO_PLAYER) {
+			UART_OutChar('D');
+		}
 		mode = FINISHED;
 		Sound_Game_Over();
 		return;
@@ -853,6 +859,7 @@ void spawn_place(void) {
          current_piece.point4.y == 0) {
       mode = FINISHED;
       Sound_Game_Over();
+			UART_OutChar('D');
    }
 }
 
@@ -871,35 +878,39 @@ void spawn_gen(void) {
        board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
       mode = FINISHED;
       Sound_Game_Over();
+			UART_OutChar('D');
    }
 }
 
 // create a new line with a single blank in the middle 
 void spawn_line(void) {
-	bool placed = false;
+	int placed = 0;
 	// check if current piece will collide with moving up
 	if (board[current_piece.point1.y+1][current_piece.point1.x] != 0xFFFF ||
 			board[current_piece.point2.y+1][current_piece.point2.x] != 0xFFFF ||
 			board[current_piece.point3.y+1][current_piece.point3.x] != 0xFFFF ||
 			board[current_piece.point4.y+1][current_piece.point4.x] != 0xFFFF) {
 		spawn_place();
-		placed = true;
+		placed = 1;
 	}
+
 	// copy all of the lines to the line above
-	for (int y = 18; y >= 0; y--) {
+	for (int y = 1; y < 20; y++) {
 		for (int x = 0; x < 10; x ++) {
-			board[y][x] = board[y+1][x]
+			board[y][x] = board[y-1][x];
 		}
 	}
 	// generate a random index and fill the bottom row
 	uint32_t index = Random()%10;
-	for (int x = 0; i < 10; x++) {
+	for (int x = 0; x < 10; x++) {
 		if (x == index) {
 			// set random index as blank
-			board[0][index] = 0xFFFF;
+			board[19][index] = 0xFFFF;
+			ST7735_FillRect(index * 8, 19*8, 8, 8, 0xFFFF);
 			continue;
 		}
-		board[0][x] = 0x7BEF;
+		board[19][x] = 0x7BEF;
+		ST7735_FillRect(x * 8, 19*8, 8, 8, 0x7BEF);
 	}
 	// after/if the piece is placed, create a new piece
 	if (placed) {
@@ -939,12 +950,21 @@ void game_two(void) {
 			down();
 		}
 		if(FiFo_Get(&receive) != 0) {
+			if(receive == 'D') {
+				mode = FINISHED;
+				break;
+			}
 			//TODO: spawn a junk line based on character - grey color
-			uint8_t num_spawn = (uint8_t)recieve;
+			uint8_t num_spawn = (uint8_t)receive;
 			for (int i = 0; i < num_spawn; i++) {
 				spawn_line(); 
 			}
 		}
+	}
+	if(receive == 'D') {
+		ST7735_DrawStringS(1, 6, " You Win! ", 0xFFFF, 0, 1);
+	} else {
+		ST7735_DrawStringS(1, 6, " You Lose! ", 0xFFFF, 0, 1);
 	}
 }
 
