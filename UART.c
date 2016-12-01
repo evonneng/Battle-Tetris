@@ -63,3 +63,10 @@ void UART_OutChar(char data){
 	}
 	UART1_DR_R = data;
 }
+
+void UART1_Handler(void){
+	while((UART1_FR_R & 0x10) != 0){
+	}
+	FiFo_Put(UART_InChar());
+	UART1_ICR_R = 0x10; //Acknowledge interrupt
+}

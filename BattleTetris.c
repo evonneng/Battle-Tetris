@@ -6,6 +6,8 @@
 #include "ADC.h"
 #include "UART.h"
 #include "Sound.h"
+#include "UART.h"
+#include "FiFo.h"
 
 #define START_MENU 0
 #define ONE_PLAYER 1
@@ -816,8 +818,35 @@ void game_one(void) {
 }
 
 void game_two(void) {
+	char receive;
+	while(FiFo_Get(&receive) == 0) {
+		UART_OutChar('R');
+	}
+	draw_game_start();
+	Point origin;
+	origin.x = 3;
+	origin.y = 0;
+	copy_piece(&current_piece, gen_piece(), origin);
+	draw_piece(&current_piece, current_piece.color);
+	mode = TWO_PLAYER;
+	play_state = DO_NOTHING;
 	while(mode == TWO_PLAYER) {
-		
+		if(play_state == MOVE_LEFT) {
+			play_state = DO_NOTHING;
+			left();
+		}
+		else if(play_state == MOVE_RIGHT) {
+			play_state = DO_NOTHING;
+			right();
+		}
+		else if(play_state == ROTATE) {
+			play_state = DO_NOTHING;
+			rotate();
+		}
+		else if(play_state == MOVE_DOWN) {
+			play_state = DO_NOTHING;
+			down();
+		}
 	}
 }
 
@@ -826,7 +855,7 @@ int main(void) {
 	TExaS_Init();  // set system clock to 80 MHz
 	ST7735_InitR(INITR_REDTAB);
  	ADC_Init();    // initialize to sample ADC1 (slider)
- 	//UART_Init();       // initialize UART
+ 	UART_Init();       // initialize UART
 	pieces_init();
 	//buttons_init();
 	Sound_Init();
