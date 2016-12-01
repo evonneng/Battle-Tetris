@@ -51,6 +51,10 @@ uint16_t board [20][10];
 uint8_t mode = 0;
 uint8_t play_state;
 uint32_t score;
+uint32_t key_pressed = 0;
+uint32_t heartbeat = 0;
+
+static const uint32_t period[4] = {0, 5682, 5062, 4778};
 
 void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
@@ -598,7 +602,7 @@ void SysTick_Handler(void) {
 	}
 }
 
-void rotate(void) {
+void rotate(void) {	
 	uint16_t next_rot = (current_piece.rotation_number+1)%4;
 	Piece *tmp = &static_pieces[current_piece.piece_number][next_rot];
 	// calculate location of the next rotated pieces
@@ -828,6 +832,7 @@ int main(void) {
 	pieces_init();
 	buttons_init();
 	SysTick_Init();
+	Sound_Init();
 	//TODO: sound, heartbeat
 	while(1) {
 		mode = START_MENU;
