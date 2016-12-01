@@ -19,12 +19,13 @@
 // Input: none
 // Output: none
 void DAC_Init(void){
-	SYSCTL_RCGC2_R |= 0x2;  	// 1) enable clock to B
-	uint16_t delay;
-	delay = SYSCTL_RCGC2_R;  	// 2) no need to unlock
+	SYSCTL_RCGCGPIO_R |= 0x2;  	// 1) enable clock to B
+	while((SYSCTL_RCGCGPIO_R & 0x2) == 0);
+	GPIO_PORTB_AMSEL_R &= ~0x0F;
 	GPIO_PORTB_DIR_R |= 0x0F;
 	GPIO_PORTB_AFSEL_R &= ~0x0F;
 	GPIO_PORTB_DEN_R |= 0x0F;
+	GPIO_PORTB_DR8R_R |= 0x0F;
 }
 
 // **************DAC_Out*********************

@@ -829,8 +829,8 @@ int main(void) {
  	//UART_Init();       // initialize UART
 	pieces_init();
 	//buttons_init();
-	SysTick_Init();
 	Sound_Init();
+	SysTick_Init();
 	EnableInterrupts();
 	Random_Init(NVIC_ST_CURRENT_R);
 	//TODO: sound, heartbeat

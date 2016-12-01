@@ -15,6 +15,7 @@ void ADC_Init(void){
 	SYSCTL_RCGCGPIO_R |= 0x00000010; // 1) activate clock for Port E
 	int delay;
 	delay = SYSCTL_RCGCGPIO_R; // allow time for clock to stabilize
+	delay = SYSCTL_RCGCGPIO_R; // allow time for clock to stabilize
 	GPIO_PORTE_DIR_R &= ~0x04; // 2) make PE2 input
         GPIO_PORTE_DIR_R &= ~0x1B; // 2) BUTTON INIT
 	GPIO_PORTE_AFSEL_R |= 0x04; // 3) enable alternate function on PE2
