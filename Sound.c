@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "Sound.h"
 #include "DAC.h"
+#include "Timer0.h"
 
 extern uint32_t key_pressed;
 uint32_t counts = 0;
