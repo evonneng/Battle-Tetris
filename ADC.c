@@ -16,8 +16,11 @@ void ADC_Init(void){
 	int delay;
 	delay = SYSCTL_RCGCGPIO_R; // allow time for clock to stabilize
 	GPIO_PORTE_DIR_R &= ~0x04; // 2) make PE2 input
+        GPIO_PORTE_DIR_R &= ~0x1B; // 2) BUTTON INIT
 	GPIO_PORTE_AFSEL_R |= 0x04; // 3) enable alternate function on PE2
+        GPIO_PORTE_AFSEL_R &= ~0x1B; // 3) BUTTON INIT
 	GPIO_PORTE_DEN_R &= ~0x04; // 4) disable digital I/O on PE2
+        GPIO_PORTE_DEN_R |= 0x1B; // 4) BUTTON INIT
 	GPIO_PORTE_AMSEL_R |= 0x04; // 5) enable analog function on PE2
 	SYSCTL_RCGCADC_R |= 0x0001; // 6) activate ADC0
 	delay = SYSCTL_RCGCGPIO_R;

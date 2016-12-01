@@ -828,7 +828,7 @@ int main(void) {
  	ADC_Init();    // initialize to sample ADC1 (slider)
  	//UART_Init();       // initialize UART
 	pieces_init();
-	buttons_init();
+	//buttons_init();
 	SysTick_Init();
 	Sound_Init();
 	EnableInterrupts();

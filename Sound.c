@@ -1155,7 +1155,7 @@ void Sound_Out(void) {
 void Sound_Init(void){
 	DAC_Init();
 	Timer0_Init(Sound_Out, 80000000/11025);
-};
+}
 
 void Sound_Play(const uint8_t *pt, uint32_t count){
 	Sound_Count = count;
