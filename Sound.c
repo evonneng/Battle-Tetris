@@ -8,6 +8,9 @@
 #include "Sound.h"
 #include "DAC.h"
 
+extern uint32_t key_pressed;
+uint32_t counts = 0;
+
 const uint8_t shoot[4080] = {
   129, 99, 103, 164, 214, 129, 31, 105, 204, 118, 55, 92, 140, 225, 152, 61, 84, 154, 184, 101, 
   75, 129, 209, 135, 47, 94, 125, 207, 166, 72, 79, 135, 195, 118, 68, 122, 205, 136, 64, 106, 
@@ -1137,9 +1140,29 @@ const uint8_t highpitch[1802] = {
   67, 119, 148, 166, 164, 238, 223, 202, 174, 112, 96, 78, 0, 34, 54, 99, 143, 160, 166, 183, 
   250, 207};
 
+void SysTick_Handler(void) {
+	if (key_pressed == 0) {
+		DAC_Out(0);
+	} else {
+		DAC_Out(shoot[counts]);
+		counts = (counts + 1) & 0x0F;
+	}
+}
+
 void Sound_Init(void){
-// write this
+	DAC_Init();
+	Timer0_Init(SysTick_Handler,0);
 };
+
+void Sound_Play_Basic(uint32_t period) {
+	long sr;
+	sr = StartCritical(); //starting critical region, disable interrupts
+	NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
+	NVIC_ST_RELOAD_R = period - 1;
+	NVIC_ST_CTRL_R = NVIC_ST_CTRL_ENABLE+NVIC_ST_CTRL_CLK_SRC+NVIC_ST_CTRL_INTEN;
+	EndCritical(sr); //ending critical region, enable interrupts
+}
+
 void Sound_Play(const uint8_t *pt, uint32_t count){
 // write this
 };

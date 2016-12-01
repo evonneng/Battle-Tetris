@@ -7,6 +7,7 @@
 
 
 void Sound_Init(void);
+void Sound_Play_Basic(uint32_t period);
 void Sound_Play(const uint8_t *pt, uint32_t count);
 void Sound_Shoot(void);
 void Sound_Killed(void);
