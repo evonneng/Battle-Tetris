@@ -719,7 +719,7 @@ void clear_row(int row) {
 
 // naive way of checking if there is a row to be cleared
 void update_score() {
-	int num_cleared;
+	uint8_t num_cleared;
 	int clear;
 	for (int y = 0; y < 20; y++) {
 		clear = 1; //init to true
@@ -739,6 +739,7 @@ void update_score() {
 	draw_score();
 	if(mode == TWO_PLAYER) {
 		//TODO: send x character based on # lines
+		UART_OutChar((char)num_cleared);
 	}
 }
 
@@ -873,8 +874,8 @@ void spawn_gen(void) {
    }
 }
 
-// create a new line with a single blank in the middle EVONNE
-/*void spawn_line(void) {
+// create a new line with a single blank in the middle 
+void spawn_line(void) {
 	bool placed = false;
 	// check if current piece will collide with moving up
 	if (board[current_piece.point1.y+1][current_piece.point1.x] != 0xFFFF ||
@@ -904,13 +905,13 @@ void spawn_gen(void) {
 	if (placed) {
 		spawn_gen();
 	}
-}*/
+}
 
 void game_two(void) {
 	//TODO: waiting for other player (display something?)
 	char receive;
 	while(FiFo_Get(&receive) == 0) {
-		UART_OutChar('R');
+		UART_OutChar('R'); 
 	}
 	draw_game_start();
 	Point origin;
@@ -939,7 +940,10 @@ void game_two(void) {
 		}
 		if(FiFo_Get(&receive) != 0) {
 			//TODO: spawn a junk line based on character - grey color
-			//spawn_line(); EVONNE
+			uint8_t num_spawn = (uint8_t)UART_InChar();
+			for (int i = 0; i < num_spawn; i++) {
+				spawn_line(); 
+			}
 		}
 	}
 }
