@@ -1,4 +1,6 @@
 # Battle-Tetris
+Battle Tetris game programmed for an ARM-Cortex tm4c123 microcontroller requiring hardware components: 2 LCD's, 8 switches, 2 slide pots, and an audio jack. 
+
 by Calvin Ly and Evonne Ng
 
 ##Overview
