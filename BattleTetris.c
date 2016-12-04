@@ -741,8 +741,7 @@ void update_score() {
 	}
 	draw_score();
 	if(mode == TWO_PLAYER) {
-		//TODO: send x character based on # lines
-		UART_OutChar((char)(num_cleared + 0x30));
+		UART_send_message((char)(num_cleared + 0x30));
 	}
 }
 
@@ -924,7 +923,6 @@ void spawn_line(void) {
 }
 
 void game_two(void) {
-	//TODO: waiting for other player (display something?)
 	ST7735_DrawStringS(4, 6, " Waiting for ", 0xFFFF, 0, 1);
 	ST7735_DrawStringS(5, 10, " Opponent ", 0xFFFF, 0, 1);
 	char receive;
@@ -962,7 +960,6 @@ void game_two(void) {
 			if(receive == 'R') {
 				continue;
 			}
-			//TODO: spawn a junk line based on character - grey color
 			if(receive >= '1' && receive <= '4') {
 				uint8_t num_spawn = (uint8_t)receive - 0x30;
 				for (int i = 0; i < num_spawn; i++) {
