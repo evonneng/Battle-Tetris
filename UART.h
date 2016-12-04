@@ -27,3 +27,9 @@ char UART_InChar(void);
 // Input: none
 // Output: char read from UART
 void UART_OutChar(char data);
+
+void UART_send_message(uint8_t x);
+	
+void UART_send_acknowledge(void);
+
+int UART_receive_message(char* msg);

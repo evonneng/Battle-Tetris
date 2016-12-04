@@ -70,3 +70,54 @@ void UART1_Handler(void){
 	FiFo_Put(UART_InChar());
 	UART1_ICR_R = 0x10; //Acknowledge interrupt
 }
+
+char send_index = 4;
+char receive_index = 0;
+
+void UART_send_acknowledge(void) {
+	UART_OutChar(0x2);
+	UART_OutChar(send_index++);
+	for(int i = 0; i < 5; i++)
+		UART_OutChar('A');
+	UART_OutChar(0x3);
+}
+
+// -1 = no messages, 0 = acknowledge msg, 1 = real message
+int UART_receive_message(char* msg) {
+	char header;
+	if(FiFo_Get(&header) == 0) {
+		return -1;
+	}
+	if(header != 0x2) {
+		while(FiFo_Get(&header) != 0 && header != 0x3);
+	}
+	char receive;
+	FiFo_Get(&receive);
+	int return_value;
+	char junk;
+	if(receive != receive_index) {
+		FiFo_Get(msg);
+		receive_index = receive;
+		return_value = 1;
+	} else {
+		FiFo_Get(&junk);
+		return_value = -1;
+	}
+	for(int i = 0; i < 5; i++)
+		FiFo_Get(&junk);
+	if(return_value == 1 && *msg == 'A')
+		return 0;
+	UART_send_acknowledge();
+	return return_value;
+}
+
+void UART_send_message(uint8_t x) {
+	char receive;
+	do {
+		UART_OutChar(0x2);
+		UART_OutChar(send_index++);
+		for(int i = 0; i < 5; i++)
+			UART_OutChar(x);
+		UART_OutChar(0x3);
+	} while(UART_receive_message(&receive) != 0);
+}

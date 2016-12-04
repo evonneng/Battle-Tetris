@@ -777,7 +777,9 @@ void place(void) {
 		 board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
 		 board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
 		if(mode == TWO_PLAYER) {
-			UART_OutChar('Z');
+			mode = FINISHED;
+			Sound_Game_Over();
+			UART_send_message('Z');
 		}
 		mode = FINISHED;
 		Sound_Game_Over();
@@ -862,7 +864,7 @@ void spawn_place(void) {
 		current_piece.point4.y == 0) {
 		mode = FINISHED;
 		Sound_Game_Over();
-		UART_OutChar('Z');
+		UART_send_message('Z');
    }
 }
 
@@ -881,7 +883,7 @@ void spawn_gen(void) {
 		board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
 		mode = FINISHED;
 		Sound_Game_Over();
-		UART_OutChar('Z');
+		UART_send_message('Z');
 	}
 }
 
@@ -926,10 +928,7 @@ void game_two(void) {
 	ST7735_DrawStringS(4, 6, " Waiting for ", 0xFFFF, 0, 1);
 	ST7735_DrawStringS(5, 10, " Opponent ", 0xFFFF, 0, 1);
 	char receive;
-	UART_OutChar('R');
-	while(FiFo_Get(&receive) == 0) {
-		UART_OutChar('R'); 
-	}
+	UART_send_message('R');
 	draw_game_start();
 	Point origin;
 	origin.x = 3;
@@ -955,17 +954,14 @@ void game_two(void) {
 			play_state = DO_NOTHING;
 			down();
 		}
-		if(FiFo_Get(&receive) != 0) {
+		if(UART_receive_message(&receive) == 1) {
 			if(receive == 'Z') {
 				mode = FINISHED;
 				break;
 			}
 			if(receive == 'R') {
-				UART_OutChar('S');
 				continue;
 			}
-			if(receive == 'S')
-				continue;
 			//TODO: spawn a junk line based on character - grey color
 			if(receive >= '1' && receive <= '4') {
 				uint8_t num_spawn = (uint8_t)receive - 0x30;
