@@ -114,6 +114,8 @@ int UART_receive_message(char* msg) {
 void UART_send_message(uint8_t x) {
 	char receive;
 	do {
+		if(x == 'R' && receive == 'R')
+			break;
 		UART_OutChar(0x2);
 		UART_OutChar(send_index++);
 		for(int i = 0; i < 5; i++)
