@@ -36,7 +36,7 @@ void UART_Init(void){
 	FiFo_Init();
 	UART1_IM_R |= 0x10;
 	UART1_IFLS_R &= ~0x28;
-	UART1_IFLS_R |= 0x10;
+	UART1_IFLS_R |= 0x04;
 	NVIC_PRI1_R = (NVIC_PRI1_R&0xFF00FFFF)|0x00100000; //UART1 Interrupt Priority 1
 	NVIC_EN0_R |= 0x40; //Enable interrupts
 }
@@ -88,9 +88,10 @@ int UART_receive_message(char* msg) {
 	if(FiFo_Get(&header) == 0) {
 		return -1;
 	}
-	if(header != 0x2) {
+	/*if(header != 0x2) {
 		while(FiFo_Get(&header) != 0 && header != 0x3);
-	}
+		return -1;
+	}*/
 	char receive;
 	FiFo_Get(&receive);
 	int return_value;
@@ -117,9 +118,10 @@ void UART_send_message(uint8_t x) {
 		if(x == 'R' && receive == 'R')
 			break;
 		UART_OutChar(0x2);
-		UART_OutChar(send_index++);
+		UART_OutChar(send_index);
 		for(int i = 0; i < 5; i++)
 			UART_OutChar(x);
 		UART_OutChar(0x3);
 	} while(UART_receive_message(&receive) != 0);
+	send_index++;
 }

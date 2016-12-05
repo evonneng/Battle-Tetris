@@ -724,7 +724,7 @@ void clear_row(int row) {
 void update_score() {
 	uint8_t num_cleared;
 	int clear;
-	for (int y = 0; y < 20; y++) {
+	for (int y = 19; y >=0; y--) {
 		clear = 1; //init to true
 		for (int x = 0; x < 10; x++) {
 			if (board[y][x] == 0xFFFF) {
@@ -740,8 +740,8 @@ void update_score() {
 		}
 	}
 	draw_score();
-	if(mode == TWO_PLAYER) {
-		UART_send_message((char)(num_cleared + 0x30));
+	if(mode == TWO_PLAYER && num_cleared > 0) {
+		//UART_send_message((char)(num_cleared + 0x30));
 	}
 }
 
@@ -758,7 +758,8 @@ void place(void) {
 			current_piece.point3.y == 0 ||
 			current_piece.point4.y == 0) {
 		if(mode == TWO_PLAYER) {
-			UART_OutChar('Z');
+			ST7735_DrawStringS(1, 6, " You Lose! ", 0xFFFF, 0, 1);
+			UART_send_message('Z');
 		}
 		mode = FINISHED;
 		Sound_Game_Over();
@@ -776,8 +777,7 @@ void place(void) {
 		 board[current_piece.point3.y][current_piece.point3.x] != 0xFFFF ||
 		 board[current_piece.point4.y][current_piece.point4.x] != 0xFFFF) {
 		if(mode == TWO_PLAYER) {
-			mode = FINISHED;
-			Sound_Game_Over();
+			ST7735_DrawStringS(1, 6, " You Lose! ", 0xFFFF, 0, 1);
 			UART_send_message('Z');
 		}
 		mode = FINISHED;
@@ -890,7 +890,12 @@ void spawn_gen(void) {
 void spawn_line(void) {
 	int placed = 0;
 	// check if current piece will collide with moving up
-	if (board[current_piece.point1.y+1][current_piece.point1.x] != 0xFFFF ||
+	if(current_piece.point1.y == 19 || current_piece.point2.y == 19 ||
+		current_piece.point3.y == 19 || current_piece.point4.y == 19) {
+			spawn_place();
+			placed = 1;
+	}
+	else if (board[current_piece.point1.y+1][current_piece.point1.x] != 0xFFFF ||
 			board[current_piece.point2.y+1][current_piece.point2.x] != 0xFFFF ||
 			board[current_piece.point3.y+1][current_piece.point3.x] != 0xFFFF ||
 			board[current_piece.point4.y+1][current_piece.point4.x] != 0xFFFF) {
@@ -926,7 +931,9 @@ void game_two(void) {
 	ST7735_DrawStringS(4, 6, " Waiting for ", 0xFFFF, 0, 1);
 	ST7735_DrawStringS(5, 10, " Opponent ", 0xFFFF, 0, 1);
 	char receive;
-	UART_send_message('R');
+	//do {
+		UART_send_message('R');
+	//} while(UART_receive_message(&receive) < 0);
 	draw_game_start();
 	Point origin;
 	origin.x = 3;
@@ -952,20 +959,21 @@ void game_two(void) {
 			play_state = DO_NOTHING;
 			down();
 		}
-		if(UART_receive_message(&receive) == 1) {
+		if(UART_receive_message(&receive) >= 0) {
 			if(receive == 'Z') {
 				mode = FINISHED;
 				break;
 			}
 			if(receive == 'R') {
+				UART_send_acknowledge();
 				continue;
 			}
-			if(receive >= '1' && receive <= '4') {
+			/*if(receive >= '1' && receive <= '4') {
 				uint8_t num_spawn = (uint8_t)receive - 0x30;
 				for (int i = 0; i < num_spawn; i++) {
 					spawn_line(); 
 				}
-			}
+			}*/
 		}
 	}
 	if(receive == 'Z') {
@@ -992,10 +1000,11 @@ int main(void) {
 		mode = START_MENU;
 		draw_start_menu();
 		char junk;
-		while(FiFo_Get(&junk) != 0); //clear the fifo queue
+		while(UART_receive_message(&junk) >= 0); //clear the fifo queue
 		int buttons;
 		do {
 			buttons = get_buttons();
+			FiFo_Get(&junk);
 		} while(buttons == 0);
 		mode = (buttons == 3)? ONE_PLAYER : WAITING_TWO;
 		board_init();
@@ -1004,7 +1013,10 @@ int main(void) {
 			game_one();
 		else if(mode == WAITING_TWO)
 			game_two();
-		while(get_buttons() == 0);
+		while(get_buttons() == 0) {
+			char junk;
+			UART_receive_message(&junk);
+		};
 		while(get_buttons() != 0);
 	}
 }
